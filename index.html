@@ -388,8 +388,9 @@ function live(a){return (a||[]).filter(function(r){return !r.x;});}
 /* ---------- estado ---------- */
 var VERSION='1.0.0'; /* al subir una versión nueva, cámbiala solo aquí */
 var LS='taskcenter-v1', LSU='taskcenter-ui', LSC='taskcenter-cfg';
+var DEFAULT_URL='https://script.google.com/macros/s/AKfycbxp5RDB2rbXkgi7XBz4hZsKtxW3R_6GFHVXY9UsfXBXL2hRXRA5CBMZoY7-51kmwS6BDw/exec'; /* URL de tu Apps Script: ya viene puesta, solo falta la clave */
 var CFG=loadCfg(), lastErr='', deferred=null;
-function loadCfg(){try{var c=JSON.parse(localStorage.getItem(LSC)||'null');if(c&&c.url&&c.key)return {url:String(c.url),key:String(c.key)};}catch(e){}return {url:'',key:''};}
+function loadCfg(){var c=null;try{c=JSON.parse(localStorage.getItem(LSC)||'null');}catch(e){}return {url:String((c&&c.url)||DEFAULT_URL),key:String((c&&c.key)||'')};}
 function saveCfg(){try{localStorage.setItem(LSC,JSON.stringify(CFG));}catch(e){}}
 function hasGS(){return !!(CFG.url&&CFG.key);}
 function isStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}
@@ -850,7 +851,7 @@ var A={
     toast(syncState==='ok'?'Conectada con tu hoja':(lastErr==='clave'?'La clave no coincide con la de Code.gs':'No se pudo conectar: '+lastErr));
   },
   'cf-off':function(){
-    CFG={url:'',key:''};saveCfg();clearTimeout(tt);clearTimeout(st);lastErr='';setSync('local');renderDlgData();
+    CFG={url:DEFAULT_URL,key:''};saveCfg();clearTimeout(tt);clearTimeout(st);lastErr='';setSync('local');renderDlgData();
     toast('Desconectada. Tus datos siguen en este dispositivo');
   },
   'cf-link':function(){

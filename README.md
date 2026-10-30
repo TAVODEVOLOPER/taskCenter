@@ -43,7 +43,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 
 1. Abre la dirección de GitHub Pages en tu móvil, tablet u ordenador.
 2. Pulsa **Datos** (abajo a la izquierda, o en la barra inferior) para abrir **Ajustes**.
-3. Pega la **URL `/exec`** y la **clave**, y pulsa **Guardar y conectar**.
+3. La **URL `/exec`** ya viene puesta. Escribe solo la **clave** y pulsa **Guardar y conectar**. (Si algún día cambia la URL, edita `DEFAULT_URL` en `index.html`.)
 4. Cuando el estado diga **Al día**, ya está sincronizando.
 5. Para conectar otro dispositivo sin escribir nada, pulsa **Copiar enlace para otro dispositivo**, envíatelo y ábrelo allí. El enlace lleva tu clave, así que no lo compartas con nadie más.
 
