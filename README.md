@@ -1,74 +1,81 @@
 # TaskCenter
 
-Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en tu propia hoja de Google Sheets.
+Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en una hoja de Google Sheets.
 
-**Versión 1.0.0 · GUSTAVO DEVELOPER**
+**Versión 1.1.1 · GUSTAVO DEVELOPER**
+
+## Cómo funciona con varias personas
+
+- Cada persona **crea su usuario** la primera vez que abre la app (nombre, usuario y contraseña; **cualquiera puede registrarse**, no hace falta código). El usuario queda registrado en la pestaña **Usuarios** de la hoja.
+- Cada usuario tiene **sus propios datos** (tareas, apuntes, pedidos, agenda). Los demás usuarios no los ven. Se sincronizan entre sus dispositivos entrando con usuario y contraseña.
+- Si alguien quiere compartir un apunte o un pedido contigo, pulsa **Enviar a Gustavo**. Llega a la pestaña **Recibidos** de la hoja, con fecha, usuario, título, detalle y mensaje. Cada envío se guarda una sola vez aunque se pulse dos veces.
+- **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). La pantalla de registro se lo advierte a cada persona. Las contraseñas **no** se guardan: solo una huella cifrada.
 
 ## Qué contiene
 
 | Archivo | Para qué sirve |
 | --- | --- |
-| `index.html` | La app completa (una sola página, sin instalar nada) |
-| `manifest.webmanifest` | Datos para instalarla como app (nombre, colores, iconos) |
-| `sw.js` | Permite usarla sin conexión |
-| `favicon.svg` y carpeta `icons/` | Icono de la app |
-| `Code.gs` | Script de Google que guarda tus datos en la hoja. **No se sube a GitHub**, se pega en Apps Script |
+| `index.html` | La app completa |
+| `manifest.webmanifest`, `sw.js`, `favicon.svg`, `icons/` | Instalación como app, uso sin conexión e iconos |
 | `.nojekyll` | Evita que GitHub Pages procese los archivos |
+| `Code.gs` | Script de Google. **No se sube a GitHub**: se pega en Apps Script |
 
-## Puesta en marcha (unos 10 minutos)
+## Puesta en marcha
 
-### 1. Preparar tu hoja de Google
+### 1. Actualizar el script de Google (obligatorio)
 
-1. En Google Drive crea una hoja de cálculo nueva y llámala `TaskCenter`.
-2. Ábrela y entra en **Extensiones → Apps Script**.
-3. Borra el código que aparece y pega todo el contenido de `Code.gs`.
-4. En la línea `const CLAVE = 'CAMBIA-ESTA-CLAVE';` escribe una clave tuya, larga y difícil de adivinar (por ejemplo, 20 letras y números). Guárdala: la necesitarás en la app.
-5. Pulsa **Implementar → Nueva implementación**, toca el engranaje y elige **Aplicación web**.
-   - Ejecutar como: **Yo**
-   - Quién tiene acceso: **Cualquier usuario**
-6. Pulsa **Implementar** y acepta los permisos de Google (si aparece un aviso de "app no verificada", elige *Avanzado → Ir a TaskCenter*, es tu propio script).
-7. Copia la **URL de la aplicación web**. Termina en `/exec`.
+1. Abre tu hoja `TaskCenter` → **Extensiones → Apps Script**.
+2. Borra todo el código y pega el contenido de este `Code.gs`.
+3. Guarda y entra en **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. Acceso: **Cualquier usuario**. La URL no cambia.
+4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.1.1"`.
 
-> La clave es lo que protege tus datos, porque la URL no pide iniciar sesión. No la compartas ni la subas a GitHub.
+> Ya no hay "clave" en la app: ahora cada persona entra con su usuario y contraseña.
 
-### 2. Subir la app a GitHub
+### 2. Subir la nueva versión de la app a GitHub
 
-1. Crea un repositorio nuevo en GitHub, por ejemplo `taskcenter`. Puede ser público: la app no contiene tus datos ni tu clave.
-2. Sube estos archivos a la raíz del repositorio: `index.html`, `manifest.webmanifest`, `sw.js`, `favicon.svg`, `.nojekyll` y la carpeta `icons`. (`Code.gs` y este `README.md` pueden subirse o no.)
-3. En el repositorio entra en **Settings → Pages**.
-4. En **Build and deployment** elige **Deploy from a branch**, rama `main` y carpeta `/ (root)`. Pulsa **Save**.
-5. Espera un par de minutos. Tu app quedará en `https://TU-USUARIO.github.io/taskcenter/`.
+Reemplaza `index.html` (y `sw.js` si cambió) en tu repositorio. Los móviles descargarán la versión nueva solos. La URL de tu script ya viene puesta en `index.html`.
 
-### 3. Conectar la app con tu hoja
+### 3. Crear usuarios
 
-1. Abre la dirección de GitHub Pages en tu móvil, tablet u ordenador.
-2. Pulsa **Datos** (abajo a la izquierda, o en la barra inferior) para abrir **Ajustes**.
-3. La **URL `/exec`** ya viene puesta. Escribe solo la **clave** y pulsa **Guardar y conectar**. (Si algún día cambia la URL, edita `DEFAULT_URL` en `index.html`.)
-4. Cuando el estado diga **Al día**, ya está sincronizando.
-5. Para conectar otro dispositivo sin escribir nada, pulsa **Copiar enlace para otro dispositivo**, envíatelo y ábrelo allí. El enlace lleva tu clave, así que no lo compartas con nadie más.
+1. Abre la app. Verás la pantalla **Crea tu usuario**.
+2. Cada persona (**tú también**) escribe nombre, usuario y contraseña.
+3. Para entrar desde otro dispositivo: **Ya tengo usuario**.
 
-En tu hoja de Google aparecerán las pestañas **Tareas**, **Apuntes**, **Pedidos** y **Agenda** con una copia legible de tus datos. Son de solo lectura: lo que escribas en ellas se sobrescribe. La pestaña oculta `_datos` es la que usa la app.
+Si en tu dispositivo había datos de la versión anterior, la app te pregunta si son tuyos y los importa a tu usuario.
 
 ### 4. Instalar como app
 
-- **Android (Chrome):** pulsa **Instalar app** dentro de TaskCenter, o el menú ⋮ → *Instalar aplicación*.
-- **Windows, Mac o Linux (Chrome o Edge):** pulsa **Instalar app** o el icono de instalar en la barra de direcciones.
-- **iPhone y iPad (Safari):** botón Compartir → *Añadir a pantalla de inicio*.
+- **Android (Chrome):** botón **Instalar app** en Ajustes, o menú ⋮ → *Instalar aplicación*.
+- **Windows, Mac, Linux (Chrome o Edge):** icono de instalar en la barra de direcciones.
+- **iPhone y iPad (Safari):** Compartir → *Añadir a pantalla de inicio*.
 
-## Actualizar la app
+## Qué verás en la hoja
 
-1. Cambia el archivo que quieras en GitHub.
-2. Si cambias algo de la app, sube también el número de versión en `index.html`: busca `var VERSION='1.0.0'` y cámbialo (por ejemplo, a `1.0.1`). Ese número se muestra en el pie de página y hace que el móvil descargue la versión nueva.
-3. Si cambias `Code.gs`, pégalo en Apps Script y ve a **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. La URL no cambia.
+| Pestaña | Contenido |
+| --- | --- |
+| **Usuarios** | Lista de usuarios, nombre, fecha de alta, último acceso y cuántas tareas, apuntes y pedidos tiene cada uno |
+| **Recibidos** | Lo que te envían: fecha, usuario, tipo, título, detalle y mensaje. Marca la casilla **Gestionado** cuando lo atiendas |
+| `_cuentas` (oculta) | Datos reales de la app. No la edites ni la borres |
+
+Las pestañas antiguas `_datos`, `Tareas`, `Apuntes`, `Pedidos` y `Agenda` de la versión anterior ya no se usan. Puedes borrarlas.
+
+## Tareas de administrador
+
+En Apps Script, edita los dos textos al inicio de la función, guarda y pulsa **Ejecutar**:
+
+- **`restablecerContrasena`**: pone una contraseña nueva a quien la olvidó. Sus sesiones abiertas se cierran y debe entrar con la nueva.
+- **`eliminarUsuario`**: borra un usuario y todos sus datos. No se puede deshacer.
 
 ## Preguntas frecuentes
 
-**Dice "Clave incorrecta".** La clave de la app debe ser idéntica a la de `Code.gs` (distingue mayúsculas). Si la cambias en `Code.gs`, despliega una nueva versión.
+**"Demasiados intentos".** Tras varios fallos seguidos se bloquea 10 minutos para proteger las cuentas. El registro admite como máximo 20 altas cada 10 minutos, para evitar que un robot llene la hoja. Si algún día quieres limpiar usuarios, usa `eliminarUsuario`.
 
-**Dice "No se pudo llegar a la hoja".** Comprueba que la URL termina en `/exec` y que el acceso es **Cualquier usuario**.
+**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.1.1. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
 
-**¿Y si no tengo conexión?** La app sigue funcionando y guarda en el dispositivo. Al volver la conexión, sincroniza sola.
+**"Tu sesión ya no es válida".** Ocurre si cambiaste la contraseña del usuario o lo eliminaste. Basta con entrar de nuevo.
 
-**¿Qué pasa si edito desde dos dispositivos a la vez?** Cada elemento se guarda con su fecha de edición y gana el cambio más reciente. Lo eliminado también se sincroniza.
+**¿Y sin conexión?** La app sigue funcionando y guarda en el dispositivo; sincroniza sola al volver internet. Enviar a Gustavo sí necesita conexión.
 
-**Copia de seguridad.** En **Ajustes → Copia de seguridad** puedes copiar todos tus datos en texto y restaurarlos más tarde.
+**Cerrar sesión borra los datos del dispositivo**, pero siguen en la hoja y vuelven al entrar. Si hay cambios sin sincronizar, la app avisa antes de salir.
+
+**Copia de seguridad.** En **Ajustes** puedes copiar tus datos en texto y restaurarlos.

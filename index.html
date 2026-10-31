@@ -276,10 +276,55 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
 .hello .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .hello .actions .btn{min-height:40px;padding:8px 14px;font-size:14px}
 @media (max-width:420px){.wt strong{font-size:21px}.weekbar{gap:6px}.weekbar .btn.ic{width:42px}}
+#auth{position:fixed;inset:0;z-index:50;overflow:auto;background-color:var(--paper);background-image:radial-gradient(var(--dot) 1.3px,transparent 1.6px);background-size:22px 22px;display:flex;justify-content:center;padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.authcard{width:min(440px,100%);margin:auto 0;background:var(--card);border:1px solid var(--rule);border-radius:24px;box-shadow:var(--sh2);padding:26px 24px 20px;animation:pop .3s cubic-bezier(.2,.7,.2,1) both}
+.authbrand{display:flex;align-items:center;gap:10px;font:700 22px/1.1 var(--f-display);letter-spacing:-.01em;margin-bottom:16px}
+.authbrand img{width:36px;height:36px;border-radius:10px}
+.authcard h1{margin:0 0 4px;font:700 30px/1.1 var(--f-display);letter-spacing:-.015em}
+.authcard .chips{margin:16px 0 0;flex-wrap:nowrap}
+.authcard .chip{flex:1;text-align:center;padding-inline:8px}
+.authcard .lbl:first-child{margin-top:8px}
+.showpw{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:var(--ink2);cursor:pointer}
+.showpw input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+.note{background:var(--accent-soft);border-radius:12px;padding:10px 12px;margin:14px 0 0;font-size:14px;color:var(--ink)}
+.autherr{margin:12px 0 0;color:var(--warn);font-weight:600;font-size:15px}
+.autherr:empty{display:none}
+.authcard .btn.primary{width:100%;margin-top:16px;min-height:48px}
+.authcard .foot{margin-top:22px}
+.sent{display:inline-flex;align-items:center;font-size:13px;font-weight:600;color:var(--ok)}
+.adv summary{cursor:pointer;font-weight:600;margin-top:22px;padding:6px 0}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
+<div id="auth" hidden>
+  <div class="authcard" role="region" aria-labelledby="au-h">
+    <div class="authbrand"><img src="favicon.svg" alt="" width="36" height="36"><span>TaskCenter</span></div>
+    <h1 id="au-h">Bienvenido</h1>
+    <p class="muted" id="au-sub">Entra con tu usuario y contraseña.</p>
+    <div class="chips" role="group" aria-label="Elige una opción">
+      <button type="button" class="chip" data-a="au-tab" data-v="reg" aria-pressed="false">Crear usuario</button>
+      <button type="button" class="chip" data-a="au-tab" data-v="login" aria-pressed="true">Ya tengo usuario</button>
+    </div>
+    <form id="fAuth" novalidate>
+      <div id="au-namebox">
+        <label class="lbl" for="au-name">Tu nombre</label>
+        <input class="in" id="au-name" autocomplete="name" maxlength="40" placeholder="Por ejemplo: Ana Pérez">
+      </div>
+      <label class="lbl" for="au-user">Usuario</label>
+      <input class="in" id="au-user" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" placeholder="Letras y números, sin espacios">
+      <label class="lbl" for="au-pass">Contraseña</label>
+      <input class="in" id="au-pass" type="password" autocomplete="current-password" maxlength="64" placeholder="Mínimo 6 caracteres">
+      <label class="showpw"><input type="checkbox" id="au-show"> Mostrar contraseña</label>
+      <div id="au-codebox">
+        <p class="note">Tus datos se guardan en la hoja de TaskCenter que administra <span class="adm"></span>, que como administrador puede verlos. El resto del equipo no ve tus datos.</p>
+      </div>
+      <p class="autherr" id="au-err" role="alert"></p>
+      <button class="btn primary" type="submit" id="au-go">Entrar</button>
+    </form>
+    <footer class="foot"><span>TaskCenter <span id="ver2"></span></span><b>GUSTAVO DEVELOPER</b></footer>
+  </div>
+</div>
 <div class="app">
   <nav class="spine" aria-label="Secciones">
     <div class="brand" aria-hidden="true">
@@ -322,23 +367,14 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
 <dialog id="dlgData">
   <div class="dlg">
     <h2>Ajustes</h2>
-    <section class="box" id="inst" aria-live="polite"></section>
-    <h3 class="h3">Conexión con Google Sheets</h3>
-    <p class="muted" id="dd-mode"></p>
-    <label class="lbl" for="cf-url">URL de la aplicación web (termina en /exec)</label>
-    <input class="in" id="cf-url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec">
-    <label class="lbl" for="cf-key">Clave</label>
-    <input class="in" id="cf-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="La misma que pusiste en Code.gs">
+    <section class="box" id="acct"></section>
     <p class="mono" style="margin-top:12px">Estado: <span id="dd-sync"></span></p>
     <div class="box" id="dd-help" hidden></div>
     <div class="row">
-      <button class="btn primary" type="button" data-a="cf-connect">Guardar y conectar</button>
       <button class="btn" type="button" id="bSync" data-a="sync-now">Sincronizar ahora</button>
+      <button class="btn danger" type="button" id="bOut" data-a="logout">Cerrar sesión</button>
     </div>
-    <div class="row">
-      <button class="btn" type="button" id="bLink" data-a="cf-link">Copiar enlace para otro dispositivo</button>
-      <button class="btn danger" type="button" id="bOff" data-a="cf-off">Desconectar</button>
-    </div>
+    <section class="box" id="inst" aria-live="polite" style="margin-top:16px"></section>
     <h3 class="h3">Copia de seguridad</h3>
     <div class="row"><button class="btn" type="button" data-a="bk-copy">Copiar copia (JSON)</button></div>
     <label class="lbl" for="bk-text">Restaurar desde una copia</label>
@@ -347,7 +383,39 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
       <button class="btn" type="button" data-a="bk-restore">Restaurar</button>
       <button class="btn" type="button" data-a="demo-clear">Quitar ejemplos</button>
     </div>
+    <details class="adv">
+      <summary>Avanzado</summary>
+      <label class="lbl" for="cf-url">URL de la aplicación web (termina en /exec)</label>
+      <input class="in" id="cf-url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec">
+      <div class="row"><button class="btn" type="button" data-a="cf-url">Guardar URL</button></div>
+    </details>
     <div class="row end"><button class="btn primary" type="button" data-a="dlg-close" data-d="dlgData">Cerrar</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlgSend">
+  <form class="dlg" id="fSend">
+    <h2>Enviar a <span class="adm"></span></h2>
+    <p class="muted" id="sd-what"></p>
+    <label class="lbl" for="sd-msg">Mensaje (opcional)</label>
+    <textarea class="in" id="sd-msg" rows="3" maxlength="1000" placeholder="Por ejemplo: lo necesito para el viernes"></textarea>
+    <p class="mono" style="margin-top:10px">Se guarda una copia en la hoja de <span class="adm"></span>. Tu versión sigue siendo tuya y puedes seguir editándola.</p>
+    <p class="autherr" id="sd-err" role="alert"></p>
+    <div class="row">
+      <button class="btn primary" type="submit" id="sd-go">Enviar</button>
+      <button class="btn" type="button" data-a="dlg-close" data-d="dlgSend">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgLegacy">
+  <div class="dlg">
+    <h2>Datos anteriores</h2>
+    <p class="muted">Encontré datos de TaskCenter guardados antes en este dispositivo. ¿Son tuyos?</p>
+    <div class="row">
+      <button class="btn primary" type="button" data-a="lg-yes">Sí, importarlos</button>
+      <button class="btn" type="button" data-a="lg-no">No, empezar de cero</button>
+    </div>
   </div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -387,13 +455,14 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function live(a){return (a||[]).filter(function(r){return !r.x;});}
 
 /* ---------- estado ---------- */
-var VERSION='1.0.2'; /* al subir una versión nueva, cámbiala solo aquí */
-var LS='taskcenter-v1', LSU='taskcenter-ui', LSC='taskcenter-cfg';
-var DEFAULT_URL='https://script.google.com/macros/s/AKfycbxp5RDB2rbXkgi7XBz4hZsKtxW3R_6GFHVXY9UsfXBXL2hRXRA5CBMZoY7-51kmwS6BDw/exec'; /* URL de tu Apps Script: ya viene puesta, solo falta la clave */
+var VERSION='1.1.1'; /* al subir una versión nueva, cámbiala solo aquí */
+var LS='', LEGACY_LS='taskcenter-v1', LSU='taskcenter-ui', LSC='taskcenter-cfg', ADMIN_NAME='Gustavo';
+var DEFAULT_URL='https://script.google.com/macros/s/AKfycbxp5RDB2rbXkgi7XBz4hZsKtxW3R_6GFHVXY9UsfXBXL2hRXRA5CBMZoY7-51kmwS6BDw/exec'; /* URL de tu Apps Script */
 var CFG=loadCfg(), lastErr='', lastApi=false, deferred=null;
-function loadCfg(){var c=null;try{c=JSON.parse(localStorage.getItem(LSC)||'null');}catch(e){}return {url:String((c&&c.url)||DEFAULT_URL),key:String((c&&c.key)||'')};}
+function loadCfg(){var c=null;try{c=JSON.parse(localStorage.getItem(LSC)||'null');}catch(e){}c=c||{};
+  return {url:String(c.url||DEFAULT_URL),user:String(c.user||''),name:String(c.name||''),token:String(c.token||'')};}
 function saveCfg(){try{localStorage.setItem(LSC,JSON.stringify(CFG));}catch(e){}}
-function hasGS(){return !!(CFG.url&&CFG.key);}
+function hasGS(){return !!(CFG.url&&CFG.user&&CFG.token);}
 function isStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}
 var S=null, dirty=false, lt=0, st=0, syncing=false, again=false, lastSync=null, editingTask=null, tt=0;
 var syncState=hasGS()?'pending':'local';
@@ -405,7 +474,7 @@ function norm(o){
     days:(o.days&&typeof o.days==='object'&&!Array.isArray(o.days))?o.days:{}};
 }
 function loadLocal(){try{var raw=localStorage.getItem(LS);if(raw)return norm(JSON.parse(raw));}catch(e){}return null;}
-function persistLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+function persistLocal(){if(!S||!LS)return;try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 function flush(){clearTimeout(lt);persistLocal();}
 function saveUI(){try{localStorage.setItem(LSU,ui.view);}catch(e){}}
 function mergeList(a,b){
@@ -474,13 +543,24 @@ function save(){
 }
 
 /* ---------- sincronización con Google Sheets (Apps Script) ---------- */
-async function api(action,data){
+var MSG={
+  auth:'Tu sesión ya no es válida. Entra de nuevo.',
+  clave:'El script de Google es de una versión anterior. Pega el Code.gs nuevo y crea una versión nueva.',
+  bloqueado:'Demasiados intentos. Espera 10 minutos e inténtalo de nuevo.',
+  ocupado:'La hoja está ocupada. Inténtalo de nuevo en unos segundos.'
+};
+async function api(action,extra){
   var ctl=new AbortController(),to=setTimeout(function(){ctl.abort();},25000);
   try{
+    var body=Object.assign({action:action,user:CFG.user,token:CFG.token},extra||{});
     /* Cuerpo de texto simple: no genera petición previa y funciona con Apps Script. */
-    var res=await fetch(CFG.url,{method:'POST',body:JSON.stringify({key:CFG.key,action:action,data:data}),redirect:'follow',signal:ctl.signal});
+    var res=await fetch(CFG.url,{method:'POST',body:JSON.stringify(body),redirect:'follow',signal:ctl.signal});
     var j=await res.json();
-    if(!j||!j.ok){var er=new Error((j&&j.error)||'Respuesta inesperada');er.fatal=(j&&j.error==='clave');er.api=true;throw er;}
+    if(!j||!j.ok){
+      var code=(j&&j.error)||'';
+      var er=new Error(MSG[code]||(j&&j.msg)||code||'Respuesta inesperada');
+      er.code=code;er.api=true;er.fatal=(code==='auth');throw er;
+    }
     return j;
   }catch(e){
     if(e.name==='AbortError'){e=new Error('La hoja tardó demasiado en responder');}
@@ -491,7 +571,7 @@ async function api(action,data){
 }
 function setSync(s){syncState=s;renderSync();}
 function queueSync(){
-  if(!hasGS())return;
+  if(!hasGS()||!S)return;
   setSync('pending');clearTimeout(tt);tt=setTimeout(sync,1800);
 }
 function typing(){
@@ -499,11 +579,12 @@ function typing(){
   return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='checkbox'&&a.id);
 }
 async function sync(){
-  if(!hasGS())return;
+  if(!hasGS()||!S)return;
   if(syncing){again=true;return;}
   syncing=true;clearTimeout(tt);clearTimeout(st);setSync('syncing');
   try{
     var rj=(await api('get')).data;var changed=false;
+    if(!S)return;
     if(rj){
       var before=JSON.stringify(S);
       S=merge(S,norm(JSON.parse(rj)));
@@ -511,13 +592,14 @@ async function sync(){
     }
     persistLocal();
     var mine=JSON.stringify(S);
-    if(dirty||!rj||mine!==rj){dirty=false;await api('save',mine);}
+    if(dirty||!rj||mine!==rj){dirty=false;await api('save',{data:mine});}
     lastSync=new Date();lastErr='';lastApi=false;
     if(dirty)queueSync();else setSync('ok');
     if(changed&&!typing())render();
   }catch(e){
-    dirty=true;lastErr=e.message||'Error';lastApi=!!e.api&&!e.fatal;setSync('error');clearTimeout(st);
-    if(!e.fatal)st=setTimeout(sync,30000);
+    dirty=true;lastErr=e.message||'Error';lastApi=!!e.api&&!e.fatal;
+    if(e.fatal){forceLogout(e.message);}
+    else{setSync('error');clearTimeout(st);st=setTimeout(sync,30000);}
   }finally{
     syncing=false;if(again){again=false;queueSync();}
   }
@@ -531,7 +613,7 @@ var ICON={
   pedidos:'<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>',
   datos:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>'
 };
-var NAV=[['semana','Semana'],['tareas','Tareas'],['apuntes','Apuntes'],['pedidos','Pedidos'],['datos','Datos']];
+var NAV=[['semana','Semana'],['tareas','Tareas'],['apuntes','Apuntes'],['pedidos','Pedidos'],['datos','Ajustes']];
 function renderNav(){
   var today=iso(new Date());
   var pend=live(S.tasks).filter(function(t){return !t.done;});
@@ -548,21 +630,22 @@ function renderNav(){
 }
 function renderSync(){
   var map={local:['Guardado en este equipo','ok'],pending:['Guardando…','warn'],syncing:['Sincronizando…','warn'],
-    ok:['Al día'+(lastSync?', '+hhmm(lastSync):''),'ok'],error:[lastErr==='clave'?'Clave incorrecta':(navigator.onLine===false?'Sin conexión, se reintenta':(lastApi?'La hoja devolvió un error':'No conecta con la hoja')),'err']};
+    ok:['Al día'+(lastSync?', '+hhmm(lastSync):''),'ok'],error:[navigator.onLine===false?'Sin conexión, se reintenta':(lastApi?'La hoja devolvió un error':'No conecta con la hoja'),'err']};
   var m=map[syncState]||map.local;
   var el=$('#sync');if(el)el.innerHTML='<i class="dot '+m[1]+'"></i>'+esc(m[0]);
   var dd=$('#dd-sync');if(dd)dd.textContent=m[0];
   var hp=$('#dd-help');
   if(hp){
-    var show=syncState==='error'&&lastErr!=='clave'&&navigator.onLine!==false;
+    var show=syncState==='error'&&navigator.onLine!==false;
     hp.hidden=!show;
     if(show)hp.innerHTML=lastApi
-      ?'<p><b>La hoja respondió con un error:</b> «'+esc(lastErr)+'».</p><p>Revisa <b>Code.gs</b>: la CLAVE debe estar cambiada y guardada, y la implementación debe ser la última versión (Implementar → Administrar implementaciones → editar → Nueva versión).</p>'
-      :'<p><b>La hoja no responde como se espera.</b> Abre la URL en una pestaña del navegador: debe mostrar «API activa».</p><p>Si pide iniciar sesión o da error, en Apps Script entra en Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión, y deja el acceso en «Cualquier usuario».</p>';
+      ?'<p><b>La hoja respondió con un error:</b> «'+esc(lastErr)+'».</p><p>Si el mensaje habla de una versión anterior, revisa <b>Code.gs</b> y crea una versión nueva del script (Implementar → Administrar implementaciones → editar → Nueva versión).</p>'
+      :'<p><b>La hoja no responde como se espera.</b> Abre la URL en una pestaña del navegador: debe mostrar «API activa» y la versión 1.1.1.</p><p>Si pide iniciar sesión o da error, en Apps Script entra en Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión, y deja el acceso en «Cualquier usuario».</p>';
   }
 }
 var MNL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 function renderTitle(){
+  if(!S)return;
   var now=new Date(),wk=isoWeek(now),today=iso(now),h=now.getHours();
   var hi=h<6?'Buenas noches':h<13?'Buenos días':h<21?'Buenas tardes':'Buenas noches';
   var pend=live(S.tasks).filter(function(t){return !t.done;});
@@ -570,7 +653,8 @@ function renderTitle(){
   var od=pend.filter(function(t){return t.due&&t.due<today;}).length;
   var msg=td?'Hoy tienes '+td+(td===1?' tarea.':' tareas.'):(pend.length?'Hoy no tienes tareas con fecha.':'No tienes tareas pendientes.');
   var late=od?' <b>'+od+(od===1?' atrasada.':' atrasadas.')+'</b>':'';
-  $('#tb').innerHTML='<div><h1>'+hi+'</h1><p>'+DNL[(now.getDay()+6)%7]+' '+now.getDate()+' de '+MNL[now.getMonth()]+', semana '+wk.w+'</p>'+
+  var nm=(CFG.name||'').split(' ')[0];
+  $('#tb').innerHTML='<div><h1>'+hi+(nm?', '+esc(nm):'')+'</h1><p>'+DNL[(now.getDay()+6)%7]+' '+now.getDate()+' de '+MNL[now.getMonth()]+', semana '+wk.w+'</p>'+
     '<p class="sum">'+msg+late+'</p></div><div class="actions">'+(deferred&&!isStandalone()?'<button class="btn" data-a="install">Instalar app</button>':'')+'<div class="chipsync" id="sync"></div></div>';
   renderSync();
 }
@@ -691,7 +775,7 @@ function noteItems(L){
     var snip=(n.b||'').replace(/\s+/g,' ').trim().slice(0,90);
     return '<li><button class="li" data-a="n-open" data-id="'+n.id+'" aria-current="'+(n.id===ui.noteId)+'">'+
       '<span class="t1">'+esc(n.t||'Sin título')+'</span><span class="t2">'+esc(snip||'Vacío')+'</span>'+
-      '<span class="t3">'+(n.pin?'<span>Fijado</span>':'')+(n.tags||[]).slice(0,3).map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</span></button></li>';
+      '<span class="t3">'+(n.pin?'<span>Fijado</span>':'')+(n.sent?'<span>Enviado</span>':'')+(n.tags||[]).slice(0,3).map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</span></button></li>';
   }).join('');
 }
 function tagChips(){
@@ -705,7 +789,8 @@ function noteEditor(n){
     '<input class="in" id="n-tags" placeholder="almacén, expediente, cables" value="'+esc((n.tags||[]).join(', '))+'">'+
     '<label class="lbl" for="n-body">Apunte</label>'+
     '<textarea class="lined auto big" id="n-body" placeholder="Escribe el apunte técnico…">'+ta(n.b)+'</textarea>'+
-    '<div class="efoot"><span class="mono">Editado: '+stamp(n.u)+'</span><span class="grow"></span>'+
+    '<div class="efoot"><span class="mono">Editado: '+stamp(n.u)+'</span>'+(n.sent?'<span class="sent">Enviado '+stamp(n.sent)+'</span>':'')+'<span class="grow"></span>'+
+    '<button class="btn primary" data-a="n-send">Enviar a '+esc(ADMIN_NAME)+'</button>'+
     '<button class="btn" data-a="n-pin">'+(n.pin?'Quitar fijado':'Fijar arriba')+'</button>'+
     '<button class="btn danger" data-a="n-del">Eliminar</button></div>';
 }
@@ -761,7 +846,7 @@ function orderEditor(o){
     '<datalist id="units"><option value="ud"><option value="m"><option value="kg"><option value="caja"><option value="rollo"><option value="par"><option value="juego"><option value="bolsa"><option value="l"></datalist>'+
     '<div class="efoot"><button class="btn" data-a="i-add">+ Añadir línea</button><span class="grow"></span>'+
     '<button class="btn" data-a="o-copy">Copiar lista</button><button class="btn" data-a="o-tsv">Copiar para Sheets</button></div>'+
-    '<div class="efoot"><button class="btn" data-a="o-dup">Duplicar</button><button class="btn danger" data-a="o-del">Eliminar</button></div>';
+    '<div class="efoot"><button class="btn primary" data-a="o-send">Enviar a '+esc(ADMIN_NAME)+'</button>'+(o.sent?'<span class="sent">Enviado '+stamp(o.sent)+'</span>':'')+'<span class="grow"></span><button class="btn" data-a="o-dup">Duplicar</button><button class="btn danger" data-a="o-del">Eliminar</button></div>';
 }
 function viewPedidos(){
   var sel=findOrder(ui.orderId);
@@ -778,6 +863,37 @@ function orderText(o){
   var lines=(o.items||[]).map(function(it,i){return (i+1)+'. '+(it.d||'—')+' — '+((it.q||'')+' '+(it.n||'')).trim();});
   return kind+': '+(o.name||'Sin nombre')+'\nFecha: '+fmtDMY(o.date)+'\n\n'+lines.join('\n');
 }
+function noteDetail(n){return ((n.tags||[]).length?'Etiquetas: '+n.tags.join(', ')+'\n\n':'')+(n.b||'');}
+function orderDetail(o){
+  var rl=o.kind==='salida'?'entregado':'recibido';
+  var lines=(o.items||[]).map(function(it,i){return (i+1)+'. '+(it.d||'—')+' — '+((it.q||'')+' '+(it.n||'')).trim()+(it.ok?' ('+rl+')':'');});
+  return (o.kind==='salida'?'Salida de almacén':'Pedido de compra')+' · Estado: '+stLabel(o)+' · Fecha: '+fmtDMY(o.date)+'\n\n'+lines.join('\n');
+}
+var sendCtx=null;
+function openSend(kind,item){
+  sendCtx={kind:kind,id:item.id,sid:uid()+uid().slice(0,6)};
+  $('#sd-what').textContent=(kind==='Apunte'?'Apunte: ':'Pedido: ')+(kind==='Apunte'?(item.t||'Sin título'):(item.name||'Sin nombre'));
+  $('#sd-msg').value='';$('#sd-err').textContent='';
+  var b=$('#sd-go');b.disabled=false;b.textContent='Enviar';
+  openDialog('dlgSend');
+}
+async function submitSend(){
+  if(!sendCtx)return;
+  var item=sendCtx.kind==='Apunte'?findNote(sendCtx.id):findOrder(sendCtx.id);
+  if(!item){closeDialog('dlgSend');return;}
+  var btn=$('#sd-go'),err=$('#sd-err');err.textContent='';btn.disabled=true;btn.textContent='Enviando…';
+  var p=sendCtx.kind==='Apunte'?{kind:'Apunte',title:item.t||'Sin título',detail:noteDetail(item)}:{kind:'Pedido',title:item.name||'Sin nombre',detail:orderDetail(item)};
+  p.sid=sendCtx.sid;p.msg=$('#sd-msg').value.trim();
+  try{
+    await api('send',p);
+    item.sent=Date.now();touch(item);save();
+    closeDialog('dlgSend');sendCtx=null;render();toast('Enviado a '+ADMIN_NAME);
+  }catch(e){
+    if(e.fatal){closeDialog('dlgSend');forceLogout(e.message);return;}
+    err.textContent=e.api?e.message:(navigator.onLine===false?'Sin conexión. Inténtalo cuando vuelva internet.':'No se pudo enviar. Comprueba la conexión e inténtalo de nuevo.');
+    btn.disabled=false;btn.textContent='Enviar';
+  }
+}
 function orderTSV(o){
   return ['Descripción\tCantidad\tUnidad'].concat((o.items||[]).map(function(it){return [it.d||'',it.q||'',it.n||''].join('\t');})).join('\n');
 }
@@ -786,6 +902,7 @@ function orderTSV(o){
 function autosize(t){t.style.height='auto';if(t.scrollHeight>0)t.style.height=t.scrollHeight+'px';}
 var lastKey='';
 function render(){
+  if(!S)return;
   renderNav();renderTitle();
   var fn={semana:viewSemana,tareas:viewTareas,apuntes:viewApuntes,pedidos:viewPedidos}[ui.view]||viewSemana;
   var v=$('#view'),key=[ui.view,ui.day,ui.noteId,ui.orderId,iso(ui.ws),ui.tf,ui.of].join('|');
@@ -827,11 +944,74 @@ function renderInstall(){
   else b.innerHTML='<p><b>Instala TaskCenter.</b> En Chrome o Edge abre el menú del navegador y elige «Instalar aplicación» (en el móvil, «Añadir a pantalla de inicio»).</p>';
 }
 function renderDlgData(){
-  var on=hasGS();
-  $('#cf-url').value=CFG.url;$('#cf-key').value=CFG.key;
-  $('#dd-mode').textContent=on?'Tus datos se guardan en tu hoja de Google y se comparten entre tus dispositivos.':'Ahora los datos solo están en este dispositivo. Conecta tu hoja de Google para compartirlos entre tus dispositivos.';
-  $('#bSync').hidden=!on;$('#bLink').hidden=!on;$('#bOff').hidden=!on;
+  $('#acct').innerHTML='<p><b>'+esc(CFG.name||CFG.user)+'</b></p><p class="mono">Usuario: '+esc(CFG.user)+'. Para entrar desde otro dispositivo usa tu usuario y contraseña.</p>';
+  $('#cf-url').value=CFG.url;
   renderInstall();renderSync();
+}
+/* ---------- acceso y sesión ---------- */
+var authMode='login',pendingLegacy=null,pendingNew=false;
+function setAuthMode(m){
+  authMode=m==='reg'?'reg':'login';
+  var reg=authMode==='reg';
+  $$('#auth .chip').forEach(function(c){c.setAttribute('aria-pressed',String(c.dataset.v===authMode));});
+  $('#au-namebox').hidden=!reg;$('#au-codebox').hidden=!reg;
+  $('#au-h').textContent=reg?'Crea tu usuario':'Bienvenido';
+  $('#au-sub').textContent=reg?'Solo lo haces una vez. Después entras desde cualquier dispositivo.':'Entra con tu usuario y contraseña.';
+  $('#au-go').textContent=reg?'Crear usuario':'Entrar';
+  $('#au-pass').autocomplete=reg?'new-password':'current-password';
+  $('#au-err').textContent='';
+}
+function showAuth(msg,mode,user){
+  $$('dialog[open]').forEach(function(d){closeDialog(d.id);});
+  $('.app').hidden=true;$('#auth').hidden=false;
+  setAuthMode(mode||'login');
+  $('#au-user').value=user||'';$('#au-pass').value='';$('#au-show').checked=false;$('#au-pass').type='password';
+  $('#au-err').textContent=msg||'';
+  setTimeout(function(){var f=$(authMode==='reg'?'#au-name':($('#au-user').value?'#au-pass':'#au-user'));if(f)f.focus();},60);
+}
+function hideAuth(){$('#auth').hidden=true;$('.app').hidden=false;}
+async function submitAuth(){
+  var reg=authMode==='reg';
+  var user=$('#au-user').value.trim().toLowerCase(),pass=$('#au-pass').value,name=$('#au-name').value.trim();
+  var err=$('#au-err'),btn=$('#au-go');err.textContent='';
+  if(!/^[a-z0-9._-]{3,20}$/.test(user)){err.textContent='El usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo.';return;}
+  if(reg&&!name){err.textContent='Escribe tu nombre.';return;}
+  if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
+  btn.disabled=true;btn.textContent='Un momento…';
+  try{
+    var j=await api(reg?'register':'login',reg?{user:user,name:name,pass:pass}:{user:user,pass:pass});
+    CFG.user=j.user;CFG.name=j.name;CFG.token=j.token;saveCfg();
+    $('#au-pass').value='';
+    startSession(reg);
+  }catch(e){
+    err.textContent=e.api?e.message:(navigator.onLine===false?'Sin conexión a internet.':'No se pudo conectar con la hoja. Comprueba la conexión o avisa a '+ADMIN_NAME+'.');
+  }finally{
+    btn.disabled=false;btn.textContent=authMode==='reg'?'Crear usuario':'Entrar';
+  }
+}
+function legacyHasReal(l){
+  return [l.tasks,l.notes,l.orders].some(function(a){return live(a).some(function(r){return !r.demo;});})||
+    Object.keys(l.days||{}).some(function(k){return l.days[k]&&l.days[k].t&&!l.days[k].demo;});
+}
+function startSession(isNew){
+  LS='taskcenter-d-'+CFG.user;
+  S=loadLocal();
+  var legacy=null;
+  if(!S){
+    try{var raw=localStorage.getItem(LEGACY_LS);if(raw)legacy=norm(JSON.parse(raw));}catch(e){}
+    if(legacy&&!legacyHasReal(legacy))legacy=null;
+    S=(isNew&&!legacy)?seedDemo():norm({});
+    persistLocal();
+  }
+  lastErr='';lastApi=false;dirty=true;syncState='pending';
+  ui.day=null;ui.noteId=null;ui.orderId=null;
+  hideAuth();render();sync();
+  if(legacy){pendingLegacy=legacy;pendingNew=isNew;openDialog('dlgLegacy');}
+}
+function forceLogout(msg){
+  clearTimeout(tt);clearTimeout(st);flush();
+  CFG.token='';saveCfg();S=null;
+  showAuth(msg||'Entra de nuevo.','login',CFG.user);
 }
 function openDialog(id){
   var d=document.getElementById(id);
@@ -852,21 +1032,36 @@ var A={
   'open-data':function(){openDialog('dlgData');},
   'dlg-close':function(el){closeDialog(el.dataset.d);},
   'sync-now':function(){sync();},
-  'cf-connect':async function(){
-    var u=$('#cf-url').value.trim(),k=$('#cf-key').value.trim();
+  'cf-url':function(){
+    var u=$('#cf-url').value.trim();
     if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){toast('La URL debe empezar por https://script.google.com y terminar en /exec');return;}
-    if(!k){toast('Escribe la clave');return;}
-    CFG={url:u,key:k};saveCfg();dirty=true;lastErr='';
-    renderDlgData();await sync();renderDlgData();
-    toast(syncState==='ok'?'Conectada con tu hoja':(lastErr==='clave'?'La clave no coincide con la de Code.gs':'No se pudo conectar. Mira el aviso de Ajustes'));
+    CFG.url=u;saveCfg();lastErr='';dirty=true;sync();toast('URL guardada');
   },
-  'cf-off':function(){
-    CFG={url:DEFAULT_URL,key:''};saveCfg();clearTimeout(tt);clearTimeout(st);lastErr='';setSync('local');renderDlgData();
-    toast('Desconectada. Tus datos siguen en este dispositivo');
+  'au-tab':function(el){setAuthMode(el.dataset.v);},
+  logout:async function(el){
+    if(hasGS()&&(dirty||syncState!=='ok')){toast('Guardando antes de salir…');await sync();}
+    if(dirty){
+      if(!el.dataset.armed)toast('Hay cambios sin guardar en la hoja. Si sales ahora se perderán. Pulsa otra vez para salir.');
+      if(!confirmTwice(el))return;
+    }
+    clearTimeout(tt);clearTimeout(st);
+    try{localStorage.removeItem(LS);}catch(e){}
+    CFG.token='';CFG.name='';CFG.user='';saveCfg();
+    S=null;LS='';dirty=false;
+    showAuth('','login','');
   },
-  'cf-link':function(){
-    copyText(location.origin+location.pathname+'#conectar='+encodeURIComponent(JSON.stringify(CFG)),'Enlace copiado. Ábrelo en el otro dispositivo');
+  'lg-yes':function(){
+    if(pendingLegacy){S=merge(S,pendingLegacy);dirty=true;persistLocal();queueSync();}
+    pendingLegacy=null;try{localStorage.removeItem(LEGACY_LS);}catch(e){}
+    closeDialog('dlgLegacy');render();toast('Datos anteriores importados');
   },
+  'lg-no':function(){
+    if(pendingNew){S=seedDemo();persistLocal();dirty=true;queueSync();}
+    pendingLegacy=null;pendingNew=false;try{localStorage.removeItem(LEGACY_LS);}catch(e){}
+    closeDialog('dlgLegacy');render();
+  },
+  'n-send':function(){var n=findNote(ui.noteId);if(n)openSend('Apunte',n);},
+  'o-send':function(){var o=findOrder(ui.orderId);if(o)openSend('Pedido',o);},
   install:async function(){
     if(!deferred)return;
     var p=deferred;deferred=null;
@@ -1007,6 +1202,8 @@ document.addEventListener('change',function(e){
 document.addEventListener('submit',function(e){
   e.preventDefault();
   var f=e.target;
+  if(f.id==='fAuth'){submitAuth();return;}
+  if(f.id==='fSend'){submitSend();return;}
   if(f.classList.contains('addtask')){
     var inp=f.querySelector('input'),v=inp.value.trim();if(!v)return;
     S.tasks.push(newTask(v,1,f.dataset.date));ui.focus=inp.id;save();render();
@@ -1044,28 +1241,15 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();def
 window.addEventListener('appinstalled',function(){deferred=null;renderTitle();renderInstall();toast('TaskCenter instalada');});
 
 /* ---------- arranque ---------- */
-(function(){ /* enlace de conexión: #conectar=... */
-  try{
-    var h=location.hash;
-    if(h.indexOf('#conectar=')===0){
-      var c=JSON.parse(decodeURIComponent(h.slice(10)));
-      if(c&&c.url&&c.key){CFG={url:String(c.url),key:String(c.key)};saveCfg();syncState='pending';setTimeout(function(){toast('Conectada con tu hoja');},400);}
-      history.replaceState(null,'',location.pathname+location.search);
-    }
-  }catch(e){}
-})();
-$('#ver').textContent='v'+VERSION;
-S=loadLocal();
-if(!S){S=seedDemo();persistLocal();}
+$('#ver').textContent='v'+VERSION;$('#ver2').textContent='v'+VERSION;
+$$('.adm').forEach(function(e){e.textContent=ADMIN_NAME;});
+document.addEventListener('change',function(e){if(e.target.id==='au-show')$('#au-pass').type=e.target.checked?'text':'password';});
 try{var sv=localStorage.getItem(LSU);if(sv&&{semana:1,tareas:1,apuntes:1,pedidos:1}[sv])ui.view=sv;}catch(e){}
-render();
+if(hasGS())startSession(false);else showAuth('',CFG.user?'login':'reg',CFG.user);
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
   navigator.serviceWorker.register('sw.js?v='+VERSION).catch(function(){});
 }
-if(hasGS()){
-  sync();
-  setInterval(function(){if(!document.hidden&&!dirty&&!syncing)sync();},90000);
-}
+setInterval(function(){if(hasGS()&&!document.hidden&&!dirty&&!syncing)sync();},90000);
 })();
 </script>
 </body>
