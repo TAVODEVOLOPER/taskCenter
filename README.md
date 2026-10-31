@@ -2,7 +2,7 @@
 
 Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en una hoja de Google Sheets.
 
-**Versión 1.2.0 · GUSTAVO DEVELOPER**
+**Versión 1.3.0 · GUSTAVO DEVELOPER**
 
 ## Cómo funciona con varias personas
 
@@ -11,7 +11,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 - Si alguien quiere compartir un apunte o un pedido contigo, pulsa **Enviar a Gustavo**. Llega a la pestaña **Recibidos** de la hoja, con fecha, usuario, título, detalle y mensaje. Cada envío se guarda una sola vez aunque se pulse dos veces.
 - **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). Los patrones **no** se guardan: solo una huella cifrada.
 
-## Novedades de la 1.2.0
+## Novedades de la 1.3.0
 
 - **Administrador:** el usuario `gustavo` (cámbialo en `ADMIN_USUARIO` de `Code.gs`) es el único que ve **Ajustes** (URL, copia de seguridad). **Regístrate tú primero con ese usuario** para que nadie más lo tome. El resto de usuarios ve solo **Salir** en la página principal.
 - **Pedidos por categoría:** *Nuevo pedido* pregunta el tipo.
@@ -24,6 +24,22 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 - **Tus listas en la hoja:** al primer uso se crean las pestañas **EPPs** y **Etiquetas** con ejemplos. Edita la columna A (un elemento por fila). Los usuarios ven los cambios al sincronizar (como mucho en un par de minutos, o al reabrir la app).
 - Cada pantalla de Apuntes y Pedidos tiene una ayuda desplegable «¿Para qué sirve?».
 - Arreglo: al editar un apunte, el primer clic en el menú ya no se pierde.
+
+## Personal, fotocheck y envíos entre usuarios (1.3.0)
+
+**Lista de personal.** En tu hoja se crea la pestaña **Personal** con las columnas `Fotocheck | Nombre | Cargo`. Rellénala con todo el personal: **solo pueden crear usuario quienes estén en esa lista**, y el nombre y el cargo salen de ella. Si la dejas vacía, nadie podrá registrarse (salvo tú, el administrador). Puedes añadir o corregir filas cuando quieras.
+
+**Fotocheck.** Al crear su usuario, cada persona escribe su fotocheck **sin el primer 0** (la pantalla se lo avisa). La app compara ignorando los ceros del principio, así que `01234`, `1234` y el número `1234` de Sheets valen lo mismo. Un fotocheck solo puede tener una cuenta.
+- **Cuentas ya creadas:** al entrar se les pide agregar su fotocheck (no se puede cerrar ese aviso; sin él no pueden enviar). Si no está en la lista, lo rechaza.
+- Tú (`ADMIN_USUARIO`) no estás obligado a figurar en la lista, pero conviene que pongas tu fotocheck.
+
+**Enviar entre usuarios.** Apuntes y pedidos tienen el botón **Enviar…**: se elige el cargo (**Encargado, Almacén, Supervisor, Administrador**) y luego la persona. Los **pedidos de EPP** solo pueden ir a **Almacén o Administrador**. El cargo se reconoce por palabras en la columna Cargo: *encargad…*, *almac…*, *supervis…*, *administrad…* (por ejemplo «Encargado de almacén» cuenta como Encargado y como Almacén). Quien no tenga una de esas palabras (un «Operario») no aparece como destinatario. Tú siempre apareces como Administrador.
+
+**Recibidos.** Cada usuario tiene la pestaña **Recibidos** con un aviso de mensajes nuevos, el detalle, un botón **Gestionado** y la opción de guardarlo en sus apuntes. Todo queda registrado en la pestaña **Mensajes** de tu hoja (De, Para, Tipo, Título, Detalle, Mensaje, Gestionado), donde también puedes marcar la casilla Gestionado. La pestaña `Recibidos` de versiones anteriores ya no se usa.
+
+**Cambios de cargo.** Si cambias el cargo de alguien en **Personal**, se aplica solo en un minuto aproximadamente.
+
+> Nota de seguridad: el fotocheck no es un secreto. Quien conozca el de un compañero podría registrarse antes que él. Si pasa, elimina esa cuenta con `eliminarUsuario` (libera el fotocheck) y que el compañero se registre.
 
 ## Qué contiene
 
@@ -41,7 +57,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 1. Abre tu hoja `TaskCenter` → **Extensiones → Apps Script**.
 2. Borra todo el código y pega el contenido de este `Code.gs`.
 3. Guarda y entra en **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. Acceso: **Cualquier usuario**. La URL no cambia.
-4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.2.0"`.
+4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.3.0"`.
 
 > Ya no hay "clave" en la app: ahora cada persona entra con su usuario y patrón.
 
@@ -69,7 +85,9 @@ Si en tu dispositivo había datos de la versión anterior, la app te pregunta si
 | --- | --- |
 | **Usuarios** | Lista de usuarios, nombre, fecha de alta, último acceso y cuántas tareas, apuntes y pedidos tiene cada uno |
 | **EPPs** y **Etiquetas** | Tus listas: una por fila en la columna A |
-| **Recibidos** | Lo que te envían: fecha, usuario, tipo, título, detalle y mensaje. Marca la casilla **Gestionado** cuando lo atiendas |
+| **Personal** | Tu lista: Fotocheck, Nombre, Cargo |
+| **Mensajes** | Todo lo que se envían los usuarios entre sí |
+| *(Recibidos, antigua)* | Ya no se usa; puedes borrarla |
 | `_cuentas` (oculta) | Datos reales de la app. No la edites ni la borres |
 
 Las pestañas antiguas `_datos`, `Tareas`, `Apuntes`, `Pedidos` y `Agenda` de la versión anterior ya no se usan. Puedes borrarlas.
@@ -85,7 +103,7 @@ En Apps Script, edita los dos textos al inicio de la función, guarda y pulsa **
 
 **"Demasiados intentos".** Tras varios fallos seguidos se bloquea 10 minutos para proteger las cuentas. El registro admite como máximo 20 altas cada 10 minutos, para evitar que un robot llene la hoja. Si algún día quieres limpiar usuarios, usa `eliminarUsuario`.
 
-**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.2.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
+**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.3.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
 
 **"Tu sesión ya no es válida".** Ocurre si restableciste el patrón del usuario o lo eliminaste. Basta con entrar de nuevo.
 
