@@ -284,9 +284,15 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
 .authcard .chips{margin:16px 0 0;flex-wrap:nowrap}
 .authcard .chip{flex:1;text-align:center;padding-inline:8px}
 .authcard .lbl:first-child{margin-top:8px}
-.showpw{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:var(--ink2);cursor:pointer}
-.showpw input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
-.note{background:var(--accent-soft);border-radius:12px;padding:10px 12px;margin:14px 0 0;font-size:14px;color:var(--ink)}
+.pad{position:relative;width:min(240px,100%);aspect-ratio:1;margin:8px auto 0;touch-action:none;user-select:none;-webkit-user-select:none;background:var(--accent-soft);border-radius:20px}
+.pad svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.pad i{position:absolute;width:20%;aspect-ratio:1;transform:translate(-50%,-50%);display:grid;place-items:center}
+.pad i::before{content:"";width:34%;aspect-ratio:1;border-radius:50%;background:var(--ink2);opacity:.55;transition:all .15s}
+.pad i.on::before{width:52%;background:var(--accent);opacity:1}
+.pad.bad i.on::before{background:var(--warn)}
+.pad.bad line{stroke:var(--warn)}
+.pad line{stroke:var(--accent);stroke-width:5;stroke-linecap:round;opacity:.85}
+.padhint{margin:8px 0 0;text-align:center;font-size:14px;color:var(--ink2);min-height:1.4em}
 .autherr{margin:12px 0 0;color:var(--warn);font-weight:600;font-size:15px}
 .autherr:empty{display:none}
 .authcard .btn.primary{width:100%;margin-top:16px;min-height:48px}
@@ -301,7 +307,7 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
   <div class="authcard" role="region" aria-labelledby="au-h">
     <div class="authbrand"><img src="favicon.svg" alt="" width="36" height="36"><span>TaskCenter</span></div>
     <h1 id="au-h">Bienvenido</h1>
-    <p class="muted" id="au-sub">Entra con tu usuario y contraseña.</p>
+    <p class="muted" id="au-sub">Entra con tu usuario y tu patrón.</p>
     <div class="chips" role="group" aria-label="Elige una opción">
       <button type="button" class="chip" data-a="au-tab" data-v="reg" aria-pressed="false">Crear usuario</button>
       <button type="button" class="chip" data-a="au-tab" data-v="login" aria-pressed="true">Ya tengo usuario</button>
@@ -313,12 +319,9 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
       </div>
       <label class="lbl" for="au-user">Usuario</label>
       <input class="in" id="au-user" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" placeholder="Letras y números, sin espacios">
-      <label class="lbl" for="au-pass">Contraseña</label>
-      <input class="in" id="au-pass" type="password" autocomplete="current-password" maxlength="64" placeholder="Mínimo 6 caracteres">
-      <label class="showpw"><input type="checkbox" id="au-show"> Mostrar contraseña</label>
-      <div id="au-codebox">
-        <p class="note">Tus datos se guardan en la hoja de TaskCenter que administra <span class="adm"></span>, que como administrador puede verlos. El resto del equipo no ve tus datos.</p>
-      </div>
+      <span class="lbl" id="pad-l">Tu patrón</span>
+      <div class="pad" id="pad" role="img" aria-labelledby="pad-l"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+      <p class="padhint" id="pad-h">Dibuja tu patrón uniendo al menos 4 puntos</p>
       <p class="autherr" id="au-err" role="alert"></p>
       <button class="btn primary" type="submit" id="au-go">Entrar</button>
     </form>
@@ -455,7 +458,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function live(a){return (a||[]).filter(function(r){return !r.x;});}
 
 /* ---------- estado ---------- */
-var VERSION='1.1.1'; /* al subir una versión nueva, cámbiala solo aquí */
+var VERSION='1.1.2'; /* al subir una versión nueva, cámbiala solo aquí */
 var LS='', LEGACY_LS='taskcenter-v1', LSU='taskcenter-ui', LSC='taskcenter-cfg', ADMIN_NAME='Gustavo';
 var DEFAULT_URL='https://script.google.com/macros/s/AKfycbxp5RDB2rbXkgi7XBz4hZsKtxW3R_6GFHVXY9UsfXBXL2hRXRA5CBMZoY7-51kmwS6BDw/exec'; /* URL de tu Apps Script */
 var CFG=loadCfg(), lastErr='', lastApi=false, deferred=null;
@@ -640,7 +643,7 @@ function renderSync(){
     hp.hidden=!show;
     if(show)hp.innerHTML=lastApi
       ?'<p><b>La hoja respondió con un error:</b> «'+esc(lastErr)+'».</p><p>Si el mensaje habla de una versión anterior, revisa <b>Code.gs</b> y crea una versión nueva del script (Implementar → Administrar implementaciones → editar → Nueva versión).</p>'
-      :'<p><b>La hoja no responde como se espera.</b> Abre la URL en una pestaña del navegador: debe mostrar «API activa» y la versión 1.1.1.</p><p>Si pide iniciar sesión o da error, en Apps Script entra en Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión, y deja el acceso en «Cualquier usuario».</p>';
+      :'<p><b>La hoja no responde como se espera.</b> Abre la URL en una pestaña del navegador: debe mostrar «API activa» y la versión 1.1.2.</p><p>Si pide iniciar sesión o da error, en Apps Script entra en Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión, y deja el acceso en «Cualquier usuario».</p>';
   }
 }
 var MNL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -944,44 +947,81 @@ function renderInstall(){
   else b.innerHTML='<p><b>Instala TaskCenter.</b> En Chrome o Edge abre el menú del navegador y elige «Instalar aplicación» (en el móvil, «Añadir a pantalla de inicio»).</p>';
 }
 function renderDlgData(){
-  $('#acct').innerHTML='<p><b>'+esc(CFG.name||CFG.user)+'</b></p><p class="mono">Usuario: '+esc(CFG.user)+'. Para entrar desde otro dispositivo usa tu usuario y contraseña.</p>';
+  $('#acct').innerHTML='<p><b>'+esc(CFG.name||CFG.user)+'</b></p><p class="mono">Usuario: '+esc(CFG.user)+'. Para entrar desde otro dispositivo usa tu usuario y tu patrón.</p>';
   $('#cf-url').value=CFG.url;
   renderInstall();renderSync();
 }
 /* ---------- acceso y sesión ---------- */
 var authMode='login',pendingLegacy=null,pendingNew=false;
+var patOK='',patFirst='',patCur=[],patDown=false;
+function padPts(){var r=[];for(var i=0;i<9;i++)r.push([(i%3)*35+15,Math.floor(i/3)*35+15]);return r;}
+function padReset(){
+  patOK='';patFirst='';patCur=[];patDown=false;
+  var p=$('#pad');if(!p)return;
+  p.classList.remove('bad');padDraw();
+  $('#pad-h').textContent=authMode==='reg'?'Dibuja tu patrón uniendo al menos 4 puntos':'Dibuja tu patrón';
+}
+function padDraw(extra){
+  var p=$('#pad'),pts=padPts(),svg=p.querySelector('svg'),l='';
+  for(var k=1;k<patCur.length;k++){var a=pts[patCur[k-1]],b=pts[patCur[k]];l+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>';}
+  if(extra&&patCur.length){var e=pts[patCur[patCur.length-1]];l+='<line x1="'+e[0]+'" y1="'+e[1]+'" x2="'+extra[0]+'" y2="'+extra[1]+'"/>';}
+  svg.innerHTML=l;
+  $$('#pad i').forEach(function(d,i){d.classList.toggle('on',patCur.indexOf(i)>-1);});
+}
+function padInit(){
+  var p=$('#pad'),pts=padPts();
+  pts.forEach(function(q){var d=document.createElement('i');d.style.left=q[0]+'%';d.style.top=q[1]+'%';p.appendChild(d);});
+  function pos(e){var r=p.getBoundingClientRect();return [(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100];}
+  function hit(q){for(var i=0;i<9;i++){var dx=q[0]-pts[i][0],dy=q[1]-pts[i][1];if(dx*dx+dy*dy<=121&&patCur.indexOf(i)<0){patCur.push(i);return;}}}
+  p.addEventListener('pointerdown',function(e){
+    e.preventDefault();try{p.setPointerCapture(e.pointerId);}catch(x){}
+    patOK='';patCur=[];patDown=true;p.classList.remove('bad');$('#au-err').textContent='';
+    var q=pos(e);hit(q);padDraw(q);
+  });
+  p.addEventListener('pointermove',function(e){if(!patDown)return;var q=pos(e);hit(q);padDraw(q);});
+  function end(){
+    if(!patDown)return;patDown=false;
+    var seq=patCur.join(''),h=$('#pad-h');
+    if(seq.length<4){p.classList.add('bad');padDraw();h.textContent='Une al menos 4 puntos. Inténtalo otra vez.';patCur=[];setTimeout(function(){p.classList.remove('bad');patCur=[];padDraw();},700);return;}
+    if(authMode==='reg'){
+      if(!patFirst){patFirst=seq;h.textContent='Dibújalo otra vez para confirmar';setTimeout(function(){patCur=[];padDraw();},350);return;}
+      if(patFirst!==seq){patFirst='';p.classList.add('bad');padDraw();h.textContent='No coincide. Empieza de nuevo.';setTimeout(function(){p.classList.remove('bad');patCur=[];padDraw();},800);return;}
+    }
+    patOK='patron-'+seq;h.textContent='Patrón listo';
+  }
+  p.addEventListener('pointerup',end);p.addEventListener('pointercancel',end);
+}
 function setAuthMode(m){
   authMode=m==='reg'?'reg':'login';
   var reg=authMode==='reg';
   $$('#auth .chip').forEach(function(c){c.setAttribute('aria-pressed',String(c.dataset.v===authMode));});
-  $('#au-namebox').hidden=!reg;$('#au-codebox').hidden=!reg;
+  $('#au-namebox').hidden=!reg;padReset();
   $('#au-h').textContent=reg?'Crea tu usuario':'Bienvenido';
-  $('#au-sub').textContent=reg?'Solo lo haces una vez. Después entras desde cualquier dispositivo.':'Entra con tu usuario y contraseña.';
+  $('#au-sub').textContent=reg?'Solo lo haces una vez. Después entras desde cualquier dispositivo.':'Entra con tu usuario y tu patrón.';
   $('#au-go').textContent=reg?'Crear usuario':'Entrar';
-  $('#au-pass').autocomplete=reg?'new-password':'current-password';
   $('#au-err').textContent='';
 }
 function showAuth(msg,mode,user){
   $$('dialog[open]').forEach(function(d){closeDialog(d.id);});
   $('.app').hidden=true;$('#auth').hidden=false;
   setAuthMode(mode||'login');
-  $('#au-user').value=user||'';$('#au-pass').value='';$('#au-show').checked=false;$('#au-pass').type='password';
+  $('#au-user').value=user||'';padReset();
   $('#au-err').textContent=msg||'';
-  setTimeout(function(){var f=$(authMode==='reg'?'#au-name':($('#au-user').value?'#au-pass':'#au-user'));if(f)f.focus();},60);
+  setTimeout(function(){var f=$(authMode==='reg'?'#au-name':'#au-user');if(f)f.focus();},60);
 }
 function hideAuth(){$('#auth').hidden=true;$('.app').hidden=false;}
 async function submitAuth(){
   var reg=authMode==='reg';
-  var user=$('#au-user').value.trim().toLowerCase(),pass=$('#au-pass').value,name=$('#au-name').value.trim();
+  var user=$('#au-user').value.trim().toLowerCase(),pass=patOK,name=$('#au-name').value.trim();
   var err=$('#au-err'),btn=$('#au-go');err.textContent='';
   if(!/^[a-z0-9._-]{3,20}$/.test(user)){err.textContent='El usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo.';return;}
   if(reg&&!name){err.textContent='Escribe tu nombre.';return;}
-  if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
+  if(!pass){err.textContent=reg?'Dibuja y confirma tu patrón.':'Dibuja tu patrón.';return;}
   btn.disabled=true;btn.textContent='Un momento…';
   try{
     var j=await api(reg?'register':'login',reg?{user:user,name:name,pass:pass}:{user:user,pass:pass});
     CFG.user=j.user;CFG.name=j.name;CFG.token=j.token;saveCfg();
-    $('#au-pass').value='';
+    padReset();
     startSession(reg);
   }catch(e){
     err.textContent=e.api?e.message:(navigator.onLine===false?'Sin conexión a internet.':'No se pudo conectar con la hoja. Comprueba la conexión o avisa a '+ADMIN_NAME+'.');
@@ -1243,7 +1283,7 @@ window.addEventListener('appinstalled',function(){deferred=null;renderTitle();re
 /* ---------- arranque ---------- */
 $('#ver').textContent='v'+VERSION;$('#ver2').textContent='v'+VERSION;
 $$('.adm').forEach(function(e){e.textContent=ADMIN_NAME;});
-document.addEventListener('change',function(e){if(e.target.id==='au-show')$('#au-pass').type=e.target.checked?'text':'password';});
+padInit();
 try{var sv=localStorage.getItem(LSU);if(sv&&{semana:1,tareas:1,apuntes:1,pedidos:1}[sv])ui.view=sv;}catch(e){}
 if(hasGS())startSession(false);else showAuth('',CFG.user?'login':'reg',CFG.user);
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){

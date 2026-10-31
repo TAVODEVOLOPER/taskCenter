@@ -24,7 +24,7 @@
 // (la parte larga de su URL, entre /d/ y /edit).
 const SHEET_ID = '';
 
-const VERSION_API = '1.1.1';
+const VERSION_API = '1.1.2';
 const VUELTAS_HASH = 200;     // vueltas del cifrado de contraseñas
 const MAX_FALLOS = 8;         // intentos fallidos seguidos antes de bloquear
 const BLOQUEO_SEG = 600;      // duración del bloqueo (10 minutos)
@@ -70,7 +70,7 @@ function registrar_(req) {
   }
   if (!nombre) return err_('nombre', 'Escribe tu nombre');
   if (pass.length < 6 || pass.length > 64) {
-    return err_('pass', 'La contraseña debe tener entre 6 y 64 caracteres');
+    return err_('pass', 'Patrón no válido');
   }
   if (bloqueado_('reg', 20)) {
     return err_('bloqueado', 'Demasiados intentos. Espera 10 minutos e inténtalo de nuevo');
@@ -97,7 +97,7 @@ function registrar_(req) {
 function entrar_(req) {
   const usuario = String(req.user || '').trim().toLowerCase();
   const pass = String(req.pass || '');
-  const MSG = 'Usuario o contraseña incorrectos';
+  const MSG = 'Usuario o patrón incorrectos';
   if (!usuarioValido_(usuario)) return err_('credenciales', MSG);
   if (bloqueado_('u:' + usuario, MAX_FALLOS)) {
     return err_('bloqueado', 'Demasiados intentos. Espera 10 minutos e inténtalo de nuevo');
@@ -339,10 +339,10 @@ function limpiar_(clave) {
  * El resultado sale en el "Registro de ejecución".
  */
 
-/** Pone una contraseña nueva a un usuario que ha olvidado la suya. */
+/** Pone un patrón temporal a un usuario que ha olvidado el suyo (puntos 0-1-2-4: fila de arriba y centro). */
 function restablecerContrasena() {
   const USUARIO = 'escribe-el-usuario';
-  const NUEVA = 'escribe-una-contraseña-nueva'; // 6 o más caracteres
+  const NUEVA = 'patron-0124'; // patrón temporal: arriba izq., arriba centro, arriba der., centro. Los puntos se numeran 0-8 por filas
 
   const usuario = USUARIO.trim().toLowerCase();
   if (NUEVA.length < 6) throw new Error('La contraseña nueva debe tener al menos 6 caracteres');
@@ -352,7 +352,7 @@ function restablecerContrasena() {
   const salt = Utilities.getUuid().replace(/-/g, '');
   sh.getRange(f, 3, 1, 2).setNumberFormat('@').setValues([[salt, hashPass_(NUEVA, salt)]]);
   limpiar_('u:' + usuario);
-  Logger.log('Listo: "' + usuario + '" ya puede entrar con la contraseña nueva. Sus sesiones antiguas se cerrarán.');
+  Logger.log('Listo: "' + usuario + '" ya puede entrar con el patrón temporal (arriba izq., arriba centro, arriba der., centro). Sus sesiones antiguas se cerrarán.');
 }
 
 /** Borra un usuario y todos sus datos. No se puede deshacer. */

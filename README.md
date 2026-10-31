@@ -2,14 +2,14 @@
 
 Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en una hoja de Google Sheets.
 
-**Versión 1.1.1 · GUSTAVO DEVELOPER**
+**Versión 1.1.2 · GUSTAVO DEVELOPER**
 
 ## Cómo funciona con varias personas
 
-- Cada persona **crea su usuario** la primera vez que abre la app (nombre, usuario y contraseña; **cualquiera puede registrarse**, no hace falta código). El usuario queda registrado en la pestaña **Usuarios** de la hoja.
-- Cada usuario tiene **sus propios datos** (tareas, apuntes, pedidos, agenda). Los demás usuarios no los ven. Se sincronizan entre sus dispositivos entrando con usuario y contraseña.
+- Cada persona **crea su usuario** la primera vez que abre la app (nombre, usuario y un **patrón** dibujado uniendo al menos 4 puntos (como el bloqueo de Android); **cualquiera puede registrarse**, no hace falta código). El usuario queda registrado en la pestaña **Usuarios** de la hoja.
+- Cada usuario tiene **sus propios datos** (tareas, apuntes, pedidos, agenda). Los demás usuarios no los ven. Se sincronizan entre sus dispositivos entrando con usuario y patrón.
 - Si alguien quiere compartir un apunte o un pedido contigo, pulsa **Enviar a Gustavo**. Llega a la pestaña **Recibidos** de la hoja, con fecha, usuario, título, detalle y mensaje. Cada envío se guarda una sola vez aunque se pulse dos veces.
-- **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). La pantalla de registro se lo advierte a cada persona. Las contraseñas **no** se guardan: solo una huella cifrada.
+- **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). Los patrones **no** se guardan: solo una huella cifrada.
 
 ## Qué contiene
 
@@ -27,9 +27,9 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 1. Abre tu hoja `TaskCenter` → **Extensiones → Apps Script**.
 2. Borra todo el código y pega el contenido de este `Code.gs`.
 3. Guarda y entra en **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. Acceso: **Cualquier usuario**. La URL no cambia.
-4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.1.1"`.
+4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.1.2"`.
 
-> Ya no hay "clave" en la app: ahora cada persona entra con su usuario y contraseña.
+> Ya no hay "clave" en la app: ahora cada persona entra con su usuario y patrón.
 
 ### 2. Subir la nueva versión de la app a GitHub
 
@@ -38,7 +38,7 @@ Reemplaza `index.html` (y `sw.js` si cambió) en tu repositorio. Los móviles de
 ### 3. Crear usuarios
 
 1. Abre la app. Verás la pantalla **Crea tu usuario**.
-2. Cada persona (**tú también**) escribe nombre, usuario y contraseña.
+2. Cada persona (**tú también**) escribe nombre, usuario y dibuja su patrón dos veces (para confirmarlo).
 3. Para entrar desde otro dispositivo: **Ya tengo usuario**.
 
 Si en tu dispositivo había datos de la versión anterior, la app te pregunta si son tuyos y los importa a tu usuario.
@@ -63,16 +63,16 @@ Las pestañas antiguas `_datos`, `Tareas`, `Apuntes`, `Pedidos` y `Agenda` de la
 
 En Apps Script, edita los dos textos al inicio de la función, guarda y pulsa **Ejecutar**:
 
-- **`restablecerContrasena`**: pone una contraseña nueva a quien la olvidó. Sus sesiones abiertas se cierran y debe entrar con la nueva.
+- **`restablecerContrasena`**: si alguien olvida su patrón, pon su usuario y ejecútala. Su patrón pasa a ser temporal: **arriba izquierda → arriba centro → arriba derecha → centro** (puntos 0‑1‑2‑4). Sus sesiones abiertas se cierran y debe entrar con ese patrón.
 - **`eliminarUsuario`**: borra un usuario y todos sus datos. No se puede deshacer.
 
 ## Preguntas frecuentes
 
 **"Demasiados intentos".** Tras varios fallos seguidos se bloquea 10 minutos para proteger las cuentas. El registro admite como máximo 20 altas cada 10 minutos, para evitar que un robot llene la hoja. Si algún día quieres limpiar usuarios, usa `eliminarUsuario`.
 
-**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.1.1. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
+**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.1.2. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
 
-**"Tu sesión ya no es válida".** Ocurre si cambiaste la contraseña del usuario o lo eliminaste. Basta con entrar de nuevo.
+**"Tu sesión ya no es válida".** Ocurre si restableciste el patrón del usuario o lo eliminaste. Basta con entrar de nuevo.
 
 **¿Y sin conexión?** La app sigue funcionando y guarda en el dispositivo; sincroniza sola al volver internet. Enviar a Gustavo sí necesita conexión.
 
