@@ -2,7 +2,7 @@
 
 Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en una hoja de Google Sheets.
 
-**Versión 1.4.0 · GUSTAVO DEVELOPER**
+**Versión 1.4.1 · GUSTAVO DEVELOPER**
 
 ## Cómo funciona con varias personas
 
@@ -10,6 +10,12 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 - Cada usuario tiene **sus propios datos** (tareas, apuntes, pedidos, agenda). Los demás usuarios no los ven. Se sincronizan entre sus dispositivos entrando con usuario y patrón.
 - Si alguien quiere compartir un apunte o un pedido contigo, pulsa **Enviar a Gustavo**. Llega a la pestaña **Recibidos** de la hoja, con fecha, usuario, título, detalle y mensaje. Cada envío se guarda una sola vez aunque se pulse dos veces.
 - **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). Los patrones **no** se guardan: solo una huella cifrada.
+
+## Novedades de la 1.4.1
+
+- **Categoría fija:** al elegir el tipo en *Nuevo pedido* ya no se vuelve a cambiar dentro del pedido; solo se muestra.
+- **Etiquetas clasificadas por tipo.** La pestaña **Etiquetas** tiene dos columnas: **A = Etiqueta** y **B = Tipo**. Usa el tipo que quieras; lo recomendado es **Mic Code**, **Bandeja** y **Equipo**. Al escribir `/` en un apunte aparecen botones por cada tipo (Todas · Bandeja · Equipo · Mic Code): tocas uno y solo ves ese grupo, y sigues filtrando con las letras. También puedes escribir el tipo (`/bandeja`) para listar ese grupo. Cada opción muestra su tipo al lado. Las etiquetas sin tipo salen solo en «Todas».
+  - Si ya subiste las bandejas a la columna A, escribe `Bandeja` en la columna B de esas filas (en Sheets: rellena la primera y arrastra hacia abajo).
 
 ## Novedades de la 1.4.0
 
@@ -67,7 +73,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 1. Abre tu hoja `TaskCenter` → **Extensiones → Apps Script**.
 2. Borra todo el código y pega el contenido de este `Code.gs`.
 3. Guarda y entra en **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. Acceso: **Cualquier usuario**. La URL no cambia.
-4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.4.0"`.
+4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.4.1"`.
 
 > Ya no hay "clave" en la app: ahora cada persona entra con su usuario y patrón.
 
@@ -113,7 +119,7 @@ En Apps Script, edita los dos textos al inicio de la función, guarda y pulsa **
 
 **"Demasiados intentos".** Tras varios fallos seguidos se bloquea 10 minutos para proteger las cuentas. El registro admite como máximo 20 altas cada 10 minutos, para evitar que un robot llene la hoja. Si algún día quieres limpiar usuarios, usa `eliminarUsuario`.
 
-**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.4.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
+**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.4.1. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
 
 **"Tu sesión ya no es válida".** Ocurre si restableciste el patrón del usuario o lo eliminaste. Basta con entrar de nuevo.
 
