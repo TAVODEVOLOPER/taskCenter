@@ -2,7 +2,7 @@
 
 Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en una hoja de Google Sheets.
 
-**Versión 1.3.0 · GUSTAVO DEVELOPER**
+**Versión 1.4.0 · GUSTAVO DEVELOPER**
 
 ## Cómo funciona con varias personas
 
@@ -10,6 +10,16 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 - Cada usuario tiene **sus propios datos** (tareas, apuntes, pedidos, agenda). Los demás usuarios no los ven. Se sincronizan entre sus dispositivos entrando con usuario y patrón.
 - Si alguien quiere compartir un apunte o un pedido contigo, pulsa **Enviar a Gustavo**. Llega a la pestaña **Recibidos** de la hoja, con fecha, usuario, título, detalle y mensaje. Cada envío se guarda una sola vez aunque se pulse dos veces.
 - **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). Los patrones **no** se guardan: solo una huella cifrada.
+
+## Novedades de la 1.4.0
+
+- **Etiquetas dentro del texto.** En un apunte, escribe `/` y las letras que recuerdes de cualquier parte de la etiqueta (por ejemplo `/bw41=09`): la lista se filtra mientras escribes, sin distinguir mayúsculas. Al elegirla (Enter o un toque) el código completo, como `#HKF.BW41=090.YQF01-UH01.WH01`, se escribe **en la misma línea** donde estabas. Si no existe, ofrece crearla. Las etiquetas salen de la pestaña **Etiquetas** (columna A, una por fila); puedes escribirlas con o sin `#`. Las filas de ejemplo que trae son solo muestras: reemplázalas por las tuyas.
+- **Funciones según fotocheck.** El cargo de cada persona sale de la pestaña **Personal** y ahora se muestra junto a la fecha en la pantalla principal; lo que puede enviar depende de ese cargo.
+- **Pedidos automáticos.** Ya no se elige estado, fecha ni nombre:
+  - **Nombre:** las iniciales del nombre (Ana Pérez → `AP`) y un correlativo propio: `AP-001`, `AP-002`…
+  - **Fecha:** siempre la de hoy (solo lectura).
+  - **Estado:** Borrador → **Enviado** al enviarlo → **Gestionado** cuando el destinatario lo marca.
+- **Quien recibe no edita.** En *Recibidos* solo se lee y se marca **Gestionado**. El emisor se entera: al sincronizar, su pedido o apunte pasa a Gestionado y la app le avisa. Si el destinatario lo desmarca, vuelve a Enviado.
 
 ## Novedades de la 1.3.0
 
@@ -57,7 +67,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 1. Abre tu hoja `TaskCenter` → **Extensiones → Apps Script**.
 2. Borra todo el código y pega el contenido de este `Code.gs`.
 3. Guarda y entra en **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. Acceso: **Cualquier usuario**. La URL no cambia.
-4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.3.0"`.
+4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.4.0"`.
 
 > Ya no hay "clave" en la app: ahora cada persona entra con su usuario y patrón.
 
@@ -103,7 +113,7 @@ En Apps Script, edita los dos textos al inicio de la función, guarda y pulsa **
 
 **"Demasiados intentos".** Tras varios fallos seguidos se bloquea 10 minutos para proteger las cuentas. El registro admite como máximo 20 altas cada 10 minutos, para evitar que un robot llene la hoja. Si algún día quieres limpiar usuarios, usa `eliminarUsuario`.
 
-**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.3.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
+**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.4.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
 
 **"Tu sesión ya no es válida".** Ocurre si restableciste el patrón del usuario o lo eliminaste. Basta con entrar de nuevo.
 
