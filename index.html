@@ -307,6 +307,7 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
 .in.bad{border-color:var(--warn);box-shadow:0 0 0 3px var(--warn-bg)}
 .grp{list-style:none;margin:14px 6px 2px;font:700 13px/1 var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);display:flex;gap:8px;align-items:center}
 .grp span{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 8px;font-size:12px;letter-spacing:0}
+.catlist.inl{display:grid;gap:8px;margin-bottom:10px}.nh{font-weight:700;font-size:16px;line-height:1.2;margin:8px 0 2px;padding:0 2px}
 .stb{display:inline-block;border-radius:999px;padding:2px 9px;font:700 12px/1.4 var(--f-body)}
 .st-borrador{background:var(--line);color:var(--ink2)}.st-cola{background:#fff1cf;color:#7a5200}
 .st-enviado{background:var(--hi);color:var(--hi-ink)}
@@ -530,14 +531,14 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function live(a){return (a||[]).filter(function(r){return !r.x;});}
 
 /* ---------- estado ---------- */
-var VERSION='1.5.0'; /* al subir una versión nueva, cámbiala solo aquí */
+var VERSION='1.6.0'; /* al subir una versión nueva, cámbiala solo aquí */
 var LS='', LEGACY_LS='taskcenter-v1', LSU='taskcenter-ui', LSC='taskcenter-cfg', LSCAT='taskcenter-cat', LSROLE='taskcenter-role', ADMIN_NAME='Gustavo';
 var DEFAULT_URL='https://script.google.com/macros/s/AKfycbxp5RDB2rbXkgi7XBz4hZsKtxW3R_6GFHVXY9UsfXBXL2hRXRA5CBMZoY7-51kmwS6BDw/exec'; /* URL de tu Apps Script */
 var CFG=loadCfg(), CAT=loadCat(), lastErr='', lastApi=false, deferred=null;
 function loadCfg(){var c=null;try{c=JSON.parse(localStorage.getItem(LSC)||'null');}catch(e){}c=c||{};
   return {url:String(c.url||DEFAULT_URL),user:String(c.user||''),name:String(c.name||''),token:String(c.token||''),admin:!!c.admin,fc:c.fc!==false,cargo:String(c.cargo||'')};}
 function loadCat(){var c=null;try{c=JSON.parse(localStorage.getItem(LSCAT)||'null');}catch(e){}
-  c=c||{};return {tags:Array.isArray(c.tags)?c.tags:[],epps:Array.isArray(c.epps)?c.epps:[],tipos:(c.tipos&&typeof c.tipos==='object')?c.tipos:{},dir:Array.isArray(c.dir)?c.dir:[]};}
+  c=c||{};return {tags:Array.isArray(c.tags)?c.tags:[],epps:Array.isArray(c.epps)?c.epps:[],tipos:(c.tipos&&typeof c.tipos==='object')?c.tipos:{},tiposLista:Array.isArray(c.tiposLista)?c.tiposLista:[],total:Number(c.total)||0,dir:Array.isArray(c.dir)?c.dir:[]};}
 var OUT=[],flushing=false;
 function outKey(){return 'taskcenter-out-'+CFG.user;}
 function loadOut(){OUT=[];try{OUT=JSON.parse(localStorage.getItem(outKey())||'[]')||[];}catch(e){OUT=[];}}
@@ -704,7 +705,7 @@ async function sync(){
     var gj=await api('get');var rj=gj.data;var changed=false;
     if(!S)return;
     if(gj.cat){
-      var nc={tags:(gj.cat.tags||[]).slice(),epps:(gj.cat.epps||[]).slice(),tipos:gj.cat.tipos||{},dir:(gj.dir||[]).slice()};
+      var nc={tags:(gj.cat.tags||[]).slice(),epps:(gj.cat.epps||[]).slice(),tipos:gj.cat.tipos||{},tiposLista:gj.cat.tiposLista||[],total:Number(gj.cat.totalTags)||0,dir:(gj.dir||[]).slice()};
       if(JSON.stringify(nc)!==JSON.stringify(CAT)){CAT=nc;saveCat();changed=true;}
     }
     if(typeof gj.admin==='boolean'&&gj.admin!==CFG.admin){CFG.admin=gj.admin;saveCfg();changed=true;}
@@ -803,7 +804,7 @@ function renderTitle(){
   var late=od?' <b>'+od+(od===1?' atrasada.':' atrasadas.')+'</b>':'';
   var nm=(CFG.name||'').split(' ')[0];
   $('#tb').innerHTML='<div><h1>'+hi+(nm?', '+esc(nm):'')+'</h1><p>'+DNL[(now.getDay()+6)%7]+' '+now.getDate()+' de '+MNL[now.getMonth()]+', semana '+wk.w+(CFG.cargo?' · '+esc(CFG.cargo):'')+'</p>'+
-    '<p class="sum">'+msg+late+'</p></div><div class="actions">'+(deferred&&!isStandalone()?'<button class="btn" data-a="install">Instalar app</button>':'')+'<div class="chipsync" id="sync"></div><button class="btn" type="button" data-a="logout" title="Cerrar sesión de '+esc(CFG.name||CFG.user)+'">Salir</button></div>';
+    '<p class="sum">'+msg+late+'</p></div><div class="actions">'+(deferred&&!isStandalone()?'<button class="btn" data-a="install">Instalar app</button>':'')+'<div class="chipsync" id="sync"></div><button class="btn" type="button" data-a="force-update" title="Forzar actualización: descarga la última versión de la app (tus datos no se borran)">Actualizar</button><button class="btn" type="button" data-a="logout" title="Cerrar sesión de '+esc(CFG.name||CFG.user)+'">Salir</button></div>';
   renderSync();
 }
 /* ---------- vistas ---------- */
@@ -944,11 +945,32 @@ function noteEditor(n){
     '<button class="btn danger" data-a="n-del">Eliminar</button></div>';
 }
 var tagSel=0,tagOpts=[],tagType='';
-function tagTipo(t){return (CAT.tipos&&CAT.tipos[t])||'';}
-function tipoList(){var o=[];allTags().forEach(function(t){var k=tagTipo(t);if(k&&o.indexOf(k)<0)o.push(k);});return o;}
+function tagTipo(t){var r=tagRecent.filter(function(x){return x.t===t;})[0];return (CAT.tipos&&CAT.tipos[t])||remoteTipos[t]||(r&&r.k)||'';}
+function tipoList(){var o=(CAT.tiposLista||[]).slice();allTags().forEach(function(t){var k=tagTipo(t);if(k&&o.indexOf(k)<0)o.push(k);});return o;}
+function tagRemoteGo(key,q,tipo){
+  if(tagPending===key)return;
+  clearTimeout(tagTimer);
+  tagTimer=setTimeout(async function(){
+    tagPending=key;
+    try{
+      var j=await api('tags',{q:q,tipo:tipo});
+      if(Object.keys(tagRemote).length>300)tagRemote={};
+      tagRemote[key]={items:j.items||[],more:!!j.more,total:j.total||0};
+      delete tagFail[key];
+    }catch(e){tagFail[key]=Date.now();}
+    finally{tagPending='';}
+    if(tagEl&&document.activeElement===tagEl)updateTagPop(tagEl);
+  },220);
+}
+var tagRemote={},tagFail={},tagPending='',tagTimer=0,remoteTipos={},tagRecent=[];
+try{tagRecent=JSON.parse(localStorage.getItem('taskcenter-trec')||'[]')||[];}catch(e){tagRecent=[];}
+function pushRecent(t,k){
+  tagRecent=tagRecent.filter(function(x){return x.t!==t;});tagRecent.unshift({t:t,k:k||''});tagRecent=tagRecent.slice(0,150);
+  try{localStorage.setItem('taskcenter-trec',JSON.stringify(tagRecent));}catch(e){}
+}
 function allTags(){
   var set={},out=[];
-  CAT.tags.concat(live(S.notes).reduce(function(a,n){return a.concat(n.tags||[]);},[])).forEach(function(t){
+  tagRecent.map(function(x){return x.t;}).concat(CAT.tags).concat(live(S.notes).reduce(function(a,n){return a.concat(n.tags||[]);},[])).forEach(function(t){
     var k=String(t).toLowerCase();if(t&&!set[k]){set[k]=1;out.push(String(t));}});
   return out;
 }
@@ -992,16 +1014,23 @@ function updateTagPop(el){
   var tk=tagToken(el);
   if(!tk){hideTagPop();return;}
   tagEl=el;var pop=tagPopEl(el);
-  var q=tagKey(tk.q);
-  var L=allTags().filter(function(x){return (!tagType||tagTipo(x)===tagType)&&(tagKey(x).indexOf(q)>-1||(q.length>2&&tagTipo(x).toLowerCase().indexOf(q)>-1));}).sort(function(a,b){
-    return (tagKey(a).indexOf(q)!==0)-(tagKey(b).indexOf(q)!==0)||a.localeCompare(b);});
-  tagOpts=L.slice(0,1000).map(function(x){return {t:x};});
-  if(q&&!L.some(function(x){return tagKey(x)===q;}))tagOpts.push({t:tagShow(tk.q),make:1});
-  if(!tagOpts.length){hideTagPop();return;}
+  var q=tagKey(tk.q),key=q+'|'+tagType,rc=tagRemote[key];
+  var online=hasGS()&&navigator.onLine!==false&&!(tagFail[key]&&Date.now()-tagFail[key]<30000);
+  var L;
+  if(rc){L=rc.items.map(function(x){if(x.k)remoteTipos[x.t]=x.k;return x.t;});}
+  else{
+    L=allTags().filter(function(x){return (!tagType||tagTipo(x)===tagType)&&(tagKey(x).indexOf(q)>-1||(q.length>2&&tagTipo(x).toLowerCase().indexOf(q)>-1));});
+    if(q)L.sort(function(a,b){return (tagKey(a).indexOf(q)!==0)-(tagKey(b).indexOf(q)!==0)||a.localeCompare(b);});
+  }
+  var loading=online&&!rc;
+  if(loading)tagRemoteGo(key,q,tagType);
+  tagOpts=L.slice(0,300).map(function(x){return {t:x};});
+  if(q&&!loading&&!L.some(function(x){return tagKey(x)===q;}))tagOpts.push({t:tagShow(tk.q),make:1});
+  if(!tagOpts.length&&!loading){hideTagPop();return;}
   if(tagPrevQ!==tk.q||tagPrevEl!==el){tagSel=0;tagPrevQ=tk.q;tagPrevEl=el;}
   if(tagSel>=tagOpts.length)tagSel=0;
   var tl=tipoList(),chips=tl.length?'<div class="tpc"><button type="button" class="tpt'+(tagType?'':' on')+'" data-tt="">Todas</button>'+tl.map(function(k){return '<button type="button" class="tpt'+(tagType===k?' on':'')+'" data-tt="'+esc(k)+'">'+esc(k)+'</button>';}).join('')+'</div>':'';
-  pop.innerHTML=chips+'<div class="tph">'+L.length+(L.length===1?' etiqueta':' etiquetas')+': ↑ ↓ y Enter, o toca una</div>'+tagOpts.map(function(o,i){
+  pop.innerHTML=chips+'<div class="tph">'+(loading?'Buscando en toda la lista…':(rc&&rc.more?'Primeras '+L.length+' de muchas: escribe más letras para afinar':L.length+(L.length===1?' etiqueta':' etiquetas')+(!rc&&CAT.total>300?' guardadas (hay '+CAT.total+' en la hoja)':'')))+' · ↑ ↓ y Enter, o toca una</div>'+tagOpts.map(function(o,i){
     return '<button type="button" class="tpo" role="option" data-tp="'+i+'" aria-selected="'+(i===tagSel)+'">'+
       (o.make?'Crear «'+esc(o.t)+'»':esc(tagShow(o.t))+(tagTipo(o.t)?'<small class="tpk">'+esc(tagTipo(o.t))+'</small>':''))+'</button>';}).join('');
   pop.hidden=false;placeTagPop(pop,el);
@@ -1010,6 +1039,7 @@ function updateTagPop(el){
 function pickTag(i){
   var t=tagEl,o=tagOpts[i];if(!t||!o)return;
   var tk=tagToken(t);if(!tk)return;
+  pushRecent(o.t,tagTipo(o.t));
   var txt=tagShow(o.t)+' ';
   t.value=t.value.slice(0,tk.start)+txt+t.value.slice(tk.end);
   t.selectionStart=t.selectionEnd=tk.start+txt.length;
@@ -1102,20 +1132,21 @@ function orderEditor(o){
     '<div class="items"><div class="irow head"><span>'+(c==='epp'?'EPP':'Descripción')+'</span><span>'+(c==='epp'?'Cantidad':'Cantidad y unidad')+'</span><span></span></div>'+rows+'</div>'+
     '<datalist id="units"><option value="ud"><option value="m"><option value="kg"><option value="caja"><option value="rollo"><option value="par"><option value="juego"><option value="bolsa"><option value="l"></datalist>'+
     '<div class="efoot"><button class="btn" data-a="i-add">+ Añadir línea</button><span class="grow"></span>'+
-    '<button class="btn" data-a="o-copy">Copiar lista</button><button class="btn" data-a="o-tsv">Copiar para Sheets</button></div>'+
+    '</div>'+
     '<div class="efoot"><button class="btn primary" data-a="o-send">'+(o.sent?'Volver a enviar…':'Enviar…')+'</button><button class="btn" data-a="o-day">Guardar como nota del día</button>'+info+'</div>'+
     '<div class="efoot"><span class="grow"></span><button class="btn" data-a="o-dup">Duplicar</button><button class="btn danger" data-a="o-del">Eliminar</button></div>';
 }
 function viewPedidos(){
   var sel=findOrder(ui.orderId);
-  var chips=[['todos','Todos'],['borrador','Borrador'],['enviado','Enviado'],['gestionado','Gestionado']].map(function(c){
-    return '<button class="chip" data-a="of" data-v="'+c[0]+'" aria-pressed="'+(ui.of===c[0])+'">'+c[1]+'</button>';}).join('');
-  return demoBanner()+'<div class="split'+(sel?' open':'')+'"><aside class="list" aria-label="Lista de pedidos">'+
-    '<div class="lh"><button class="btn primary grow" data-a="o-new">+ Nuevo pedido</button></div>'+
-    '<div class="chips" style="padding:8px 0 0">'+chips+'</div>'+
-    '<details class="help"><summary>¿Cómo funcionan los pedidos?</summary><p>Aquí llevas la lista de tus pedidos. El nombre (tus iniciales y un número) y la fecha se ponen solos, y el estado cambia solo: <b>Borrador</b> (lo preparas), <b>Enviado</b> (ya lo mandaste) y <b>Gestionado</b> (quien lo recibió lo atendió; te enteras aquí).</p><ul><li><b>EPP:</b> eliges de la lista de EPPs.</li><li><b>Materiales de proyecto:</b> el Mic Code es opcional.</li><li><b>Pedido de compra:</b> el enlace del producto es obligatorio.</li></ul><p>Al terminar, elige <b>Enviar</b> (tú decides a quién; los pedidos de EPP solo van a almacén o administrador) o <b>Guardar como nota del día</b>.</p></details>'+
+  var cats='<div class="catlist inl"><h3 class="nh">Nuevo pedido</h3><p class="muted">¿Qué tipo de pedido es?</p>'+
+    '<button class="catbtn" type="button" data-a="o-cat" data-v="epp"><b>EPP</b><span>Eliges de la lista de EPPs</span></button>'+
+    '<button class="catbtn" type="button" data-a="o-cat" data-v="mat"><b>Materiales de proyecto</b><span>Material para el proyecto, con Mic Code opcional</span></button>'+
+    '<button class="catbtn" type="button" data-a="o-cat" data-v="compra"><b>Pedido de compra</b><span>Producto a comprar, con el enlace obligatorio</span></button></div>';
+  return demoBanner()+'<div class="split'+(sel?' open':'')+'"><aside class="list" aria-label="Pedidos">'+cats+
+    '<details class="help"><summary>¿Cómo funcionan los pedidos?</summary><p>Elige el tipo y llena el pedido. El nombre (tus iniciales y un número) y la fecha se ponen solos, y el estado cambia solo: <b>Borrador</b> (lo preparas), <b>Enviado</b> (ya lo mandaste, a la espera de respuesta) y <b>Gestionado</b> (quien lo recibió lo atendió). Los pedidos enviados quedan abajo como historial.</p></details>'+
+    '<h3 class="nh">Historial</h3>'+
     '<ul class="items-list" id="olist">'+orderItems(orderList())+'</ul></aside>'+
-    '<article class="editor" id="oeditor">'+(sel?orderEditor(sel):emptyBox('Sin pedido abierto','Elige uno de la lista o crea uno nuevo.'))+'</article></div>';
+    '<article class="editor" id="oeditor">'+(sel?orderEditor(sel):emptyBox('Ningún pedido abierto','Elige el tipo de pedido para empezar uno nuevo, o abre uno del historial.'))+'</article></div>';
 }
 function refreshOrderList(){var a=$('#olist');if(a)a.innerHTML=orderItems(orderList());}
 function realItems(o){return (o.items||[]).filter(function(i){return (i.d||'').trim();});}
@@ -1190,7 +1221,7 @@ async function submitSend(){
     item.sent=Date.now();item.sentTo=rs.to||'';item.sid=sendCtx.sid;item.g=0;item.gAt=0;
     if(sendCtx.kind==='Pedido')item.st='enviado';
     touch(item);save();
-    closeDialog('dlgSend');sendCtx=null;render();toast('Enviado a '+(rs.to||'el destinatario'));
+    if(sendCtx.kind==='Pedido')ui.orderId=null;closeDialog('dlgSend');sendCtx=null;render();window.scrollTo(0,0);toast('Enviado a '+(rs.to||'el destinatario'));
   }catch(e){
     if(e.fatal){closeDialog('dlgSend');forceLogout(e.message);return;}
     if(e.code==='fotocheck'){closeDialog('dlgSend');CFG.fc=false;saveCfg();checkFc();return;}
@@ -1198,7 +1229,7 @@ async function submitSend(){
       var who=$('#sd-to').selectedOptions&&$('#sd-to').selectedOptions[0]?$('#sd-to').selectedOptions[0].textContent.split(' — ')[0]:'';
       OUT=OUT.filter(function(x){return x.p.sid!==p.sid;});OUT.push({kind:sendCtx.kind,id:item.id,p:p,to:who});saveOut();
       item.pend=1;item.sid=sendCtx.sid;item.sentTo=who;touch(item);save();
-      closeDialog('dlgSend');sendCtx=null;render();toast('Sin señal: queda guardado y se enviará solo cuando vuelva la conexión');return;
+      if(sendCtx.kind==='Pedido')ui.orderId=null;closeDialog('dlgSend');sendCtx=null;render();window.scrollTo(0,0);toast('Sin señal: queda guardado y se enviará solo cuando vuelva la conexión');return;
     }
     err.textContent=e.api?e.message:(navigator.onLine===false?'Sin conexión. Inténtalo cuando vuelva internet.':'No se pudo enviar. Comprueba la conexión e inténtalo de nuevo.');
     btn.disabled=false;btn.textContent='Enviar';
@@ -1412,7 +1443,17 @@ function openTask(id){
 
 /* ---------- acciones (clic) ---------- */
 var A={
-  nav:function(el){if(el.dataset.v==='semana')ui.day=null;ui.view=el.dataset.v;saveUI();render();window.scrollTo(0,0);},
+  nav:function(el){if(el.dataset.v==='semana')ui.day=null;if(el.dataset.v==='pedidos')ui.orderId=null;ui.view=el.dataset.v;saveUI();render();window.scrollTo(0,0);},
+  'force-update':async function(el){
+    if(navigator.onLine===false){toast('Sin internet: no se puede actualizar ahora. La app sigue funcionando con la versión actual.');return;}
+    if(!el.dataset.busy){el.dataset.busy='1';el.textContent='Actualizando…';}
+    try{
+      if(hasGS()&&S&&(dirty||OUT.length)){flush();try{await sync();}catch(e){}}
+      if('serviceWorker' in navigator){var rg=await navigator.serviceWorker.getRegistrations();await Promise.all(rg.map(function(r){return r.unregister();}));}
+      if(window.caches){var ks=await caches.keys();await Promise.all(ks.filter(function(k){return k.indexOf('taskcenter-')===0;}).map(function(k){return caches.delete(k);}));}
+    }catch(e){}
+    location.replace(location.pathname+'?u='+Date.now());
+  },
   'open-data':function(){if(CFG.admin)openDialog('dlgData');},
   'dlg-close':function(el){closeDialog(el.dataset.d);},
   'sync-now':function(){sync();},

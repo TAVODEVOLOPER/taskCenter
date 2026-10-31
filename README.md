@@ -2,7 +2,7 @@
 
 Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en una hoja de Google Sheets.
 
-**Versión 1.5.0 · GUSTAVO DEVELOPER**
+**Versión 1.6.0 · GUSTAVO DEVELOPER**
 
 ## Cómo funciona con varias personas
 
@@ -10,6 +10,13 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 - Cada usuario tiene **sus propios datos** (tareas, apuntes, pedidos, agenda). Los demás usuarios no los ven. Se sincronizan entre sus dispositivos entrando con usuario y patrón.
 - Si alguien quiere compartir un apunte o un pedido contigo, pulsa **Enviar a Gustavo**. Llega a la pestaña **Recibidos** de la hoja, con fecha, usuario, título, detalle y mensaje. Cada envío se guarda una sola vez aunque se pulse dos veces.
 - **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). Los patrones **no** se guardan: solo una huella cifrada.
+
+## Novedades de la 1.6.0
+
+- **Pedidos más simples:** al entrar a *Pedidos* siempre empiezas eligiendo el tipo (EPP, Materiales de proyecto, Pedido de compra). Los pedidos enviados quedan abajo como **Historial**, con su estado, esperando respuesta. Al **enviar** un pedido vuelves a esta pantalla inicial. Se quitaron los botones de filtro (Todos/Borrador/Enviado/Gestionado) y **Copiar lista / Copiar para Sheets**.
+- **Botón «Actualizar»** en la pantalla principal (junto a *Salir*): fuerza la descarga de la última versión de la app. No borra tus datos ni tu sesión, y envía antes lo que tengas pendiente. Necesita internet.
+- **Cientos de miles de etiquetas:** la app ya no descarga toda la pestaña *Etiquetas* (con 500 000 filas sería imposible). Al abrir solo baja una vista previa de 300 y, al escribir `/` y unas letras, **busca directamente en la hoja** y muestra las primeras 60 coincidencias, con aviso si hay más (escribe más letras o usa los botones de tipo para afinar). Las que más usas quedan guardadas en el dispositivo y salen primero, incluso sin internet. Sin conexión solo se ven las guardadas.
+  - Límite de Google Sheets: 10 millones de celdas por archivo; con 2 columnas caben sobradamente 500 000 filas.
 
 ## Novedades de la 1.5.0
 
@@ -84,7 +91,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 1. Abre tu hoja `TaskCenter` → **Extensiones → Apps Script**.
 2. Borra todo el código y pega el contenido de este `Code.gs`.
 3. Guarda y entra en **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. Acceso: **Cualquier usuario**. La URL no cambia.
-4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.5.0"`.
+4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.6.0"`.
 
 > Ya no hay "clave" en la app: ahora cada persona entra con su usuario y patrón.
 
@@ -130,7 +137,7 @@ En Apps Script, edita los dos textos al inicio de la función, guarda y pulsa **
 
 **"Demasiados intentos".** Tras varios fallos seguidos se bloquea 10 minutos para proteger las cuentas. El registro admite como máximo 20 altas cada 10 minutos, para evitar que un robot llene la hoja. Si algún día quieres limpiar usuarios, usa `eliminarUsuario`.
 
-**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.5.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
+**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.6.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
 
 **"Tu sesión ya no es válida".** Ocurre si restableciste el patrón del usuario o lo eliminaste. Basta con entrar de nuevo.
 
