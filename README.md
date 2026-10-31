@@ -2,7 +2,7 @@
 
 Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet y escritorio, se instala como app y guarda los datos en una hoja de Google Sheets.
 
-**Versión 1.4.1 · GUSTAVO DEVELOPER**
+**Versión 1.5.0 · GUSTAVO DEVELOPER**
 
 ## Cómo funciona con varias personas
 
@@ -10,6 +10,17 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 - Cada usuario tiene **sus propios datos** (tareas, apuntes, pedidos, agenda). Los demás usuarios no los ven. Se sincronizan entre sus dispositivos entrando con usuario y patrón.
 - Si alguien quiere compartir un apunte o un pedido contigo, pulsa **Enviar a Gustavo**. Llega a la pestaña **Recibidos** de la hoja, con fecha, usuario, título, detalle y mensaje. Cada envío se guarda una sola vez aunque se pulse dos veces.
 - **Privacidad:** como dueño de la hoja, tú puedes ver los datos de todos (están en una pestaña oculta llamada `_cuentas`). Los patrones **no** se guardan: solo una huella cifrada.
+
+## Novedades de la 1.5.0
+
+- **Etiquetas en todas partes:** escribe `/` en apuntes, notas de la semana y del día, tareas, pedidos y mensajes. Se listan **todas** las etiquetas de la hoja (ya no hay tope de 40), con botones por tipo.
+- **Cargos según la tabla Personal:**
+  - Se reconocen sin importar mayúsculas, minúsculas ni tildes (`ADMINISTRADOR`, `Almacén`, `Administración`…). Las columnas de *Personal* se identifican por su título, en cualquier orden.
+  - **Administrador = quien en Personal tiene cargo de administrador**, identificado por su fotocheck. Solo él ve **Ajustes**. Ya no depende del nombre de usuario.
+  - **Sin excepciones:** nadie crea cuenta con un fotocheck que no esté en Personal, tampoco el administrador.
+- **A quién va cada pedido:** *Pedido de compra* → Administrador o Supervisor. *Materiales de proyecto* → Encargado, Administrador o Supervisor. *EPP* → Almacén o Administrador. Los apuntes pueden ir a los cuatro cargos. El servidor también lo comprueba.
+- **Sin internet:** la app abre y se usa sin conexión. Si envías algo sin señal, queda como **Por enviar**, se guarda en el dispositivo y sale solo al volver la conexión (una sola vez). Si cierras sesión con envíos pendientes, la app te avisa.
+- **Salir** sigue en la pantalla principal para todos.
 
 ## Novedades de la 1.4.1
 
@@ -29,7 +40,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 
 ## Novedades de la 1.3.0
 
-- **Administrador:** el usuario `gustavo` (cámbialo en `ADMIN_USUARIO` de `Code.gs`) es el único que ve **Ajustes** (URL, copia de seguridad). **Regístrate tú primero con ese usuario** para que nadie más lo tome. El resto de usuarios ve solo **Salir** en la página principal.
+- **Administrador:** (desde la 1.5.0) el administrador es quien tiene cargo de administrador en *Personal*. El resto de usuarios ve solo **Salir** en la página principal.
 - **Pedidos por categoría:** *Nuevo pedido* pregunta el tipo.
   - **EPP:** se elige de la lista de la pestaña **EPPs** de tu hoja.
   - **Materiales de proyecto:** Mic Code opcional.
@@ -73,7 +84,7 @@ Agenda semanal, tareas, apuntes técnicos y pedidos. Funciona en móvil, tablet 
 1. Abre tu hoja `TaskCenter` → **Extensiones → Apps Script**.
 2. Borra todo el código y pega el contenido de este `Code.gs`.
 3. Guarda y entra en **Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión → Implementar**. Acceso: **Cualquier usuario**. La URL no cambia.
-4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.4.1"`.
+4. Abre la URL `/exec` en el navegador: debe mostrar `"version":"1.5.0"`.
 
 > Ya no hay "clave" en la app: ahora cada persona entra con su usuario y patrón.
 
@@ -119,7 +130,7 @@ En Apps Script, edita los dos textos al inicio de la función, guarda y pulsa **
 
 **"Demasiados intentos".** Tras varios fallos seguidos se bloquea 10 minutos para proteger las cuentas. El registro admite como máximo 20 altas cada 10 minutos, para evitar que un robot llene la hoja. Si algún día quieres limpiar usuarios, usa `eliminarUsuario`.
 
-**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.4.1. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
+**"No conecta con la hoja".** Abre la URL `/exec` en el navegador: debe mostrar «API activa» y la versión 1.5.0. Si no, repite el paso 1 (Nueva versión, acceso «Cualquier usuario»).
 
 **"Tu sesión ya no es válida".** Ocurre si restableciste el patrón del usuario o lo eliminaste. Basta con entrar de nuevo.
 
