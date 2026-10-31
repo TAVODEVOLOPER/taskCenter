@@ -330,6 +330,7 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
     <label class="lbl" for="cf-key">Clave</label>
     <input class="in" id="cf-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="La misma que pusiste en Code.gs">
     <p class="mono" style="margin-top:12px">Estado: <span id="dd-sync"></span></p>
+    <div class="box" id="dd-help" hidden></div>
     <div class="row">
       <button class="btn primary" type="button" data-a="cf-connect">Guardar y conectar</button>
       <button class="btn" type="button" id="bSync" data-a="sync-now">Sincronizar ahora</button>
@@ -386,10 +387,10 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function live(a){return (a||[]).filter(function(r){return !r.x;});}
 
 /* ---------- estado ---------- */
-var VERSION='1.0.0'; /* al subir una versión nueva, cámbiala solo aquí */
+var VERSION='1.0.2'; /* al subir una versión nueva, cámbiala solo aquí */
 var LS='taskcenter-v1', LSU='taskcenter-ui', LSC='taskcenter-cfg';
 var DEFAULT_URL='https://script.google.com/macros/s/AKfycbxp5RDB2rbXkgi7XBz4hZsKtxW3R_6GFHVXY9UsfXBXL2hRXRA5CBMZoY7-51kmwS6BDw/exec'; /* URL de tu Apps Script: ya viene puesta, solo falta la clave */
-var CFG=loadCfg(), lastErr='', deferred=null;
+var CFG=loadCfg(), lastErr='', lastApi=false, deferred=null;
 function loadCfg(){var c=null;try{c=JSON.parse(localStorage.getItem(LSC)||'null');}catch(e){}return {url:String((c&&c.url)||DEFAULT_URL),key:String((c&&c.key)||'')};}
 function saveCfg(){try{localStorage.setItem(LSC,JSON.stringify(CFG));}catch(e){}}
 function hasGS(){return !!(CFG.url&&CFG.key);}
@@ -479,11 +480,12 @@ async function api(action,data){
     /* Cuerpo de texto simple: no genera petición previa y funciona con Apps Script. */
     var res=await fetch(CFG.url,{method:'POST',body:JSON.stringify({key:CFG.key,action:action,data:data}),redirect:'follow',signal:ctl.signal});
     var j=await res.json();
-    if(!j||!j.ok){var er=new Error((j&&j.error)||'Respuesta inesperada');er.fatal=(j&&j.error==='clave');throw er;}
+    if(!j||!j.ok){var er=new Error((j&&j.error)||'Respuesta inesperada');er.fatal=(j&&j.error==='clave');er.api=true;throw er;}
     return j;
   }catch(e){
     if(e.name==='AbortError'){e=new Error('La hoja tardó demasiado en responder');}
-    else if(e instanceof TypeError){e=new Error('No se pudo llegar a la hoja. Revisa la URL y la conexión');}
+    else if(e instanceof SyntaxError){e=new Error('La hoja devolvió una página en vez de datos');}
+    else if(e instanceof TypeError){e=new Error('La hoja no responde como API');}
     throw e;
   }finally{clearTimeout(to);}
 }
@@ -510,11 +512,11 @@ async function sync(){
     persistLocal();
     var mine=JSON.stringify(S);
     if(dirty||!rj||mine!==rj){dirty=false;await api('save',mine);}
-    lastSync=new Date();lastErr='';
+    lastSync=new Date();lastErr='';lastApi=false;
     if(dirty)queueSync();else setSync('ok');
     if(changed&&!typing())render();
   }catch(e){
-    dirty=true;lastErr=e.message||'Error';setSync('error');clearTimeout(st);
+    dirty=true;lastErr=e.message||'Error';lastApi=!!e.api&&!e.fatal;setSync('error');clearTimeout(st);
     if(!e.fatal)st=setTimeout(sync,30000);
   }finally{
     syncing=false;if(again){again=false;queueSync();}
@@ -546,10 +548,18 @@ function renderNav(){
 }
 function renderSync(){
   var map={local:['Guardado en este equipo','ok'],pending:['Guardando…','warn'],syncing:['Sincronizando…','warn'],
-    ok:['Al día'+(lastSync?', '+hhmm(lastSync):''),'ok'],error:[lastErr==='clave'?'Clave incorrecta':'Sin conexión, se reintenta','err']};
+    ok:['Al día'+(lastSync?', '+hhmm(lastSync):''),'ok'],error:[lastErr==='clave'?'Clave incorrecta':(navigator.onLine===false?'Sin conexión, se reintenta':(lastApi?'La hoja devolvió un error':'No conecta con la hoja')),'err']};
   var m=map[syncState]||map.local;
   var el=$('#sync');if(el)el.innerHTML='<i class="dot '+m[1]+'"></i>'+esc(m[0]);
-  var dd=$('#dd-sync');if(dd)dd.textContent=m[0]+(syncState==='error'&&lastErr&&lastErr!=='clave'?' ('+lastErr+')':'');
+  var dd=$('#dd-sync');if(dd)dd.textContent=m[0];
+  var hp=$('#dd-help');
+  if(hp){
+    var show=syncState==='error'&&lastErr!=='clave'&&navigator.onLine!==false;
+    hp.hidden=!show;
+    if(show)hp.innerHTML=lastApi
+      ?'<p><b>La hoja respondió con un error:</b> «'+esc(lastErr)+'».</p><p>Revisa <b>Code.gs</b>: la CLAVE debe estar cambiada y guardada, y la implementación debe ser la última versión (Implementar → Administrar implementaciones → editar → Nueva versión).</p>'
+      :'<p><b>La hoja no responde como se espera.</b> Abre la URL en una pestaña del navegador: debe mostrar «API activa».</p><p>Si pide iniciar sesión o da error, en Apps Script entra en Implementar → Administrar implementaciones → editar (lápiz) → Versión: Nueva versión, y deja el acceso en «Cualquier usuario».</p>';
+  }
 }
 var MNL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 function renderTitle(){
@@ -848,7 +858,7 @@ var A={
     if(!k){toast('Escribe la clave');return;}
     CFG={url:u,key:k};saveCfg();dirty=true;lastErr='';
     renderDlgData();await sync();renderDlgData();
-    toast(syncState==='ok'?'Conectada con tu hoja':(lastErr==='clave'?'La clave no coincide con la de Code.gs':'No se pudo conectar: '+lastErr));
+    toast(syncState==='ok'?'Conectada con tu hoja':(lastErr==='clave'?'La clave no coincide con la de Code.gs':'No se pudo conectar. Mira el aviso de Ajustes'));
   },
   'cf-off':function(){
     CFG={url:DEFAULT_URL,key:''};saveCfg();clearTimeout(tt);clearTimeout(st);lastErr='';setSync('local');renderDlgData();
