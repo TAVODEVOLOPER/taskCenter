@@ -408,6 +408,20 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
   </form>
 </dialog>
 
+<dialog id="dlgPat">
+  <form class="dlg" id="fPat" novalidate>
+    <h2>Cambiar mi patrón</h2>
+    <span class="lbl" id="pad-ol">1. Tu patrón actual</span>
+    <div class="pad" id="pad-old" role="img" aria-labelledby="pad-ol"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+    <p class="padhint" id="pad-oh"></p>
+    <span class="lbl" id="pad-nl">2. Tu patrón nuevo (dibújalo dos veces)</span>
+    <div class="pad" id="pad-new" role="img" aria-labelledby="pad-nl"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+    <p class="padhint" id="pad-nh"></p>
+    <p class="autherr" id="pt-err" role="alert"></p>
+    <div class="row end"><button class="btn" type="button" data-a="dlg-close" data-d="dlgPat">Cancelar</button><button class="btn primary" type="submit" id="pt-go">Guardar patrón</button></div>
+  </form>
+</dialog>
+
 <dialog id="dlgData">
   <div class="dlg">
     <h2>Ajustes</h2>
@@ -419,6 +433,10 @@ dialog::backdrop{background:rgba(10,28,28,.5);backdrop-filter:blur(3px)}
       <button class="btn danger" type="button" id="bOut" data-a="logout">Cerrar sesión</button>
     </div>
     <section class="box" id="inst" aria-live="polite" style="margin-top:16px"></section>
+    <h3 class="h3">Patrón olvidado</h3>
+    <p class="note">Elige a la persona y pulsa Restablecer: su patrón pasa a ser <b>arriba izquierda → arriba centro → arriba derecha → centro</b>. Luego puede cambiarlo con el botón «Mi patrón».</p>
+    <div class="row"><select class="in" id="rs-user" aria-label="Usuario"></select><button class="btn" type="button" data-a="rs-go">Restablecer</button></div>
+    <p class="autherr" id="rs-msg" role="status"></p>
     <h3 class="h3">Copia de seguridad</h3>
     <div class="row"><button class="btn" type="button" data-a="bk-copy">Copiar copia (JSON)</button></div>
     <label class="lbl" for="bk-text">Restaurar desde una copia</label>
@@ -531,7 +549,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function live(a){return (a||[]).filter(function(r){return !r.x;});}
 
 /* ---------- estado ---------- */
-var VERSION='1.6.0'; /* al subir una versión nueva, cámbiala solo aquí */
+var VERSION='1.7.0'; /* al subir una versión nueva, cámbiala solo aquí */
 var LS='', LEGACY_LS='taskcenter-v1', LSU='taskcenter-ui', LSC='taskcenter-cfg', LSCAT='taskcenter-cat', LSROLE='taskcenter-role', ADMIN_NAME='Gustavo';
 var DEFAULT_URL='https://script.google.com/macros/s/AKfycbxp5RDB2rbXkgi7XBz4hZsKtxW3R_6GFHVXY9UsfXBXL2hRXRA5CBMZoY7-51kmwS6BDw/exec'; /* URL de tu Apps Script */
 var CFG=loadCfg(), CAT=loadCat(), lastErr='', lastApi=false, deferred=null;
@@ -804,7 +822,7 @@ function renderTitle(){
   var late=od?' <b>'+od+(od===1?' atrasada.':' atrasadas.')+'</b>':'';
   var nm=(CFG.name||'').split(' ')[0];
   $('#tb').innerHTML='<div><h1>'+hi+(nm?', '+esc(nm):'')+'</h1><p>'+DNL[(now.getDay()+6)%7]+' '+now.getDate()+' de '+MNL[now.getMonth()]+', semana '+wk.w+(CFG.cargo?' · '+esc(CFG.cargo):'')+'</p>'+
-    '<p class="sum">'+msg+late+'</p></div><div class="actions">'+(deferred&&!isStandalone()?'<button class="btn" data-a="install">Instalar app</button>':'')+'<div class="chipsync" id="sync"></div><button class="btn" type="button" data-a="force-update" title="Forzar actualización: descarga la última versión de la app (tus datos no se borran)">Actualizar</button><button class="btn" type="button" data-a="logout" title="Cerrar sesión de '+esc(CFG.name||CFG.user)+'">Salir</button></div>';
+    '<p class="sum">'+msg+late+'</p></div><div class="actions">'+(deferred&&!isStandalone()?'<button class="btn" data-a="install">Instalar app</button>':'')+'<div class="chipsync" id="sync"></div><button class="btn" type="button" data-a="my-pat" title="Cambiar mi patrón">Mi patrón</button><button class="btn" type="button" data-a="force-update" title="Forzar actualización: descarga la última versión de la app (tus datos no se borran)">Actualizar</button><button class="btn" type="button" data-a="logout" title="Cerrar sesión de '+esc(CFG.name||CFG.user)+'">Salir</button></div>';
   renderSync();
 }
 /* ---------- vistas ---------- */
@@ -1324,47 +1342,60 @@ function renderDlgData(){
   $('#acct').innerHTML='<p><b>'+esc(CFG.name||CFG.user)+'</b> · administrador</p><p class="mono">Usuario: '+esc(CFG.user)+'. Las listas de EPPs y de etiquetas se editan en las pestañas «EPPs» y «Etiquetas» de la hoja. Quién puede crear usuario se controla en la pestaña «Personal» (Fotocheck, Nombre, Cargo). Todos los envíos quedan en «Mensajes».</p>';
   $('#cf-url').value=CFG.url;
   renderInstall();renderSync();
+  if(hasGS()&&CFG.admin){api('usuarios').then(function(j){
+    var sel=$('#rs-user');if(!sel)return;
+    sel.innerHTML='<option value="">Elige un usuario…</option>'+(j.users||[]).filter(function(x){return x.u!==CFG.user;}).map(function(x){return '<option value="'+esc(x.u)+'">'+esc(x.n)+' ('+esc(x.u)+')</option>';}).join('');
+  }).catch(function(){});}
 }
 /* ---------- acceso y sesión ---------- */
 var authMode='login',pendingLegacy=null,pendingNew=false;
-var patOK='',patFirst='',patCur=[],patDown=false;
 function padPts(){var r=[];for(var i=0;i<9;i++)r.push([(i%3)*35+15,Math.floor(i/3)*35+15]);return r;}
-function padReset(){
-  patOK='';patFirst='';patCur=[];patDown=false;
-  var p=$('#pad');if(!p)return;
-  p.classList.remove('bad');padDraw();
-  $('#pad-h').textContent=authMode==='reg'?'Dibuja tu patrón uniendo al menos 4 puntos':'Dibuja tu patrón';
-}
-function padDraw(extra){
-  var p=$('#pad'),pts=padPts(),svg=p.querySelector('svg'),l='';
-  for(var k=1;k<patCur.length;k++){var a=pts[patCur[k-1]],b=pts[patCur[k]];l+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>';}
-  if(extra&&patCur.length){var e=pts[patCur[patCur.length-1]];l+='<line x1="'+e[0]+'" y1="'+e[1]+'" x2="'+extra[0]+'" y2="'+extra[1]+'"/>';}
-  svg.innerHTML=l;
-  $$('#pad i').forEach(function(d,i){d.classList.toggle('on',patCur.indexOf(i)>-1);});
-}
-function padInit(){
-  var p=$('#pad'),pts=padPts();
-  pts.forEach(function(q){var d=document.createElement('i');d.style.left=q[0]+'%';d.style.top=q[1]+'%';p.appendChild(d);});
-  function pos(e){var r=p.getBoundingClientRect();return [(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100];}
-  function hit(q){for(var i=0;i<9;i++){var dx=q[0]-pts[i][0],dy=q[1]-pts[i][1];if(dx*dx+dy*dy<=121&&patCur.indexOf(i)<0){patCur.push(i);return;}}}
-  p.addEventListener('pointerdown',function(e){
-    e.preventDefault();try{p.setPointerCapture(e.pointerId);}catch(x){}
-    patOK='';patCur=[];patDown=true;p.classList.remove('bad');$('#au-err').textContent='';
-    var q=pos(e);hit(q);padDraw(q);
-  });
-  p.addEventListener('pointermove',function(e){if(!patDown)return;var q=pos(e);hit(q);padDraw(q);});
-  function end(){
-    if(!patDown)return;patDown=false;
-    var seq=patCur.join(''),h=$('#pad-h');
-    if(seq.length<4){p.classList.add('bad');padDraw();h.textContent='Une al menos 4 puntos. Inténtalo otra vez.';patCur=[];setTimeout(function(){p.classList.remove('bad');patCur=[];padDraw();},700);return;}
-    if(authMode==='reg'){
-      if(!patFirst){patFirst=seq;h.textContent='Dibújalo otra vez para confirmar';setTimeout(function(){patCur=[];padDraw();},350);return;}
-      if(patFirst!==seq){patFirst='';p.classList.add('bad');padDraw();h.textContent='No coincide. Empieza de nuevo.';setTimeout(function(){p.classList.remove('bad');patCur=[];padDraw();},800);return;}
-    }
-    patOK='patron-'+seq;h.textContent='Patrón listo';
+/* Patrón de 3×3: cada instancia lleva su propio estado (acceso y cambio de patrón). */
+function Pad(id,hintId,o){
+  var P={ok:'',first:'',cur:[],down:false,p:null};
+  function hint(t){var h=document.getElementById(hintId);if(h)h.textContent=t;}
+  function draw(extra){
+    var p=P.p,pts=padPts(),svg=p.querySelector('svg'),l='';
+    for(var k=1;k<P.cur.length;k++){var a=pts[P.cur[k-1]],b=pts[P.cur[k]];l+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>';}
+    if(extra&&P.cur.length){var e=pts[P.cur[P.cur.length-1]];l+='<line x1="'+e[0]+'" y1="'+e[1]+'" x2="'+extra[0]+'" y2="'+extra[1]+'"/>';}
+    svg.innerHTML=l;
+    P.p.querySelectorAll('i').forEach(function(d,i){d.classList.toggle('on',P.cur.indexOf(i)>-1);});
   }
-  p.addEventListener('pointerup',end);p.addEventListener('pointercancel',end);
+  P.reset=function(){
+    P.ok='';P.first='';P.cur=[];P.down=false;
+    if(!P.p)return;
+    P.p.classList.remove('bad');draw();hint(o.hint());
+  };
+  P.init=function(){
+    var p=P.p=document.getElementById(id),pts=padPts();
+    if(!p)return;
+    pts.forEach(function(q){var d=document.createElement('i');d.style.left=q[0]+'%';d.style.top=q[1]+'%';p.appendChild(d);});
+    function pos(e){var r=p.getBoundingClientRect();return [(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100];}
+    function hit(q){for(var i=0;i<9;i++){var dx=q[0]-pts[i][0],dy=q[1]-pts[i][1];if(dx*dx+dy*dy<=121&&P.cur.indexOf(i)<0){P.cur.push(i);return;}}}
+    p.addEventListener('pointerdown',function(e){
+      e.preventDefault();try{p.setPointerCapture(e.pointerId);}catch(x){}
+      P.ok='';P.cur=[];P.down=true;p.classList.remove('bad');if(o.onStart)o.onStart();
+      var q=pos(e);hit(q);draw(q);
+    });
+    p.addEventListener('pointermove',function(e){if(!P.down)return;var q=pos(e);hit(q);draw(q);});
+    function end(){
+      if(!P.down)return;P.down=false;
+      var seq=P.cur.join('');
+      if(seq.length<4){p.classList.add('bad');draw();hint('Une al menos 4 puntos. Inténtalo otra vez.');P.cur=[];setTimeout(function(){p.classList.remove('bad');P.cur=[];draw();},700);return;}
+      if(o.confirm()){
+        if(!P.first){P.first=seq;hint('Dibújalo otra vez para confirmar');setTimeout(function(){P.cur=[];draw();},350);return;}
+        if(P.first!==seq){P.first='';p.classList.add('bad');draw();hint('No coincide. Empieza de nuevo.');setTimeout(function(){p.classList.remove('bad');P.cur=[];draw();},800);return;}
+      }
+      P.ok='patron-'+seq;hint('Patrón listo');
+    }
+    p.addEventListener('pointerup',end);p.addEventListener('pointercancel',end);
+  };
+  return P;
 }
+var authPad=Pad('pad','pad-h',{confirm:function(){return authMode==='reg';},hint:function(){return authMode==='reg'?'Dibuja tu patrón uniendo al menos 4 puntos':'Dibuja tu patrón';},onStart:function(){$('#au-err').textContent='';}});
+var oldPad=Pad('pad-old','pad-oh',{confirm:function(){return false;},hint:function(){return 'Dibuja tu patrón actual';}});
+var newPad=Pad('pad-new','pad-nh',{confirm:function(){return true;},hint:function(){return 'Dibuja el patrón nuevo (4 puntos o más)';}});
+function padReset(){authPad.reset();}
 function setAuthMode(m){
   authMode=m==='reg'?'reg':'login';
   var reg=authMode==='reg';
@@ -1386,7 +1417,7 @@ function showAuth(msg,mode,user){
 function hideAuth(){$('#auth').hidden=true;$('.app').hidden=false;}
 async function submitAuth(){
   var reg=authMode==='reg';
-  var user=$('#au-user').value.trim().toLowerCase(),pass=patOK,fc=$('#au-fc').value.trim();
+  var user=$('#au-user').value.trim().toLowerCase(),pass=authPad.ok,fc=$('#au-fc').value.trim();
   var err=$('#au-err'),btn=$('#au-go');err.textContent='';
   if(!/^[a-z0-9._-]{3,20}$/.test(user)){err.textContent='El usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo.';return;}
   if(reg&&!fc){err.textContent='Escribe tu número de fotocheck, sin el primer 0.';return;}
@@ -1402,6 +1433,21 @@ async function submitAuth(){
   }finally{
     btn.disabled=false;btn.textContent=authMode==='reg'?'Crear usuario':'Entrar';
   }
+}
+async function submitPat(){
+  var err=$('#pt-err'),btn=$('#pt-go');err.textContent='';
+  if(!oldPad.ok){err.textContent='Dibuja tu patrón actual.';return;}
+  if(!newPad.ok){err.textContent='Dibuja y confirma el patrón nuevo.';return;}
+  btn.disabled=true;btn.textContent='Guardando…';
+  try{
+    var j=await api('cambiarpatron',{old:oldPad.ok,pass:newPad.ok});
+    CFG.token=j.token;saveCfg();
+    closeDialog('dlgPat');oldPad.reset();newPad.reset();
+    toast('Patrón cambiado. En tus otros dispositivos tendrás que entrar con el nuevo.');
+  }catch(e){
+    if(e.fatal){closeDialog('dlgPat');forceLogout(e.message);return;}
+    err.textContent=e.api?e.message:(navigator.onLine===false?'Sin conexión a internet.':'No se pudo conectar con la hoja. Inténtalo de nuevo.');
+  }finally{btn.disabled=false;btn.textContent='Guardar patrón';}
 }
 function legacyHasReal(l){
   return [l.tasks,l.notes,l.orders].some(function(a){return live(a).some(function(r){return !r.demo;});})||
@@ -1444,6 +1490,19 @@ function openTask(id){
 /* ---------- acciones (clic) ---------- */
 var A={
   nav:function(el){if(el.dataset.v==='semana')ui.day=null;if(el.dataset.v==='pedidos')ui.orderId=null;ui.view=el.dataset.v;saveUI();render();window.scrollTo(0,0);},
+  'my-pat':function(){
+    if(navigator.onLine===false){toast('Sin internet: el patrón se cambia con conexión.');return;}
+    oldPad.reset();newPad.reset();$('#pt-err').textContent='';openDialog('dlgPat');
+  },
+  'rs-go':async function(el){
+    var u=$('#rs-user').value,m=$('#rs-msg');m.textContent='';
+    if(!u){m.textContent='Elige un usuario.';return;}
+    if(!confirmTwice(el)){m.textContent='Pulsa otra vez para confirmar.';return;}
+    el.disabled=true;
+    try{var j=await api('resetuser',{target:u});m.textContent='Listo: '+j.name+' ya puede entrar con el patrón temporal (arriba izq. → arriba centro → arriba der. → centro).';}
+    catch(e){m.textContent=e.api?e.message:'No se pudo. Comprueba la conexión.';}
+    finally{el.disabled=false;if(el.dataset.label){el.textContent=el.dataset.label;delete el.dataset.armed;}}
+  },
   'force-update':async function(el){
     if(navigator.onLine===false){toast('Sin internet: no se puede actualizar ahora. La app sigue funcionando con la versión actual.');return;}
     if(!el.dataset.busy){el.dataset.busy='1';el.textContent='Actualizando…';}
@@ -1671,6 +1730,7 @@ document.addEventListener('submit',function(e){
   e.preventDefault();
   var f=e.target;
   if(f.id==='fAuth'){submitAuth();return;}
+  if(f.id==='fPat'){submitPat();return;}
   if(f.id==='fSend'){submitSend();return;}
   if(f.id==='fFc'){submitFc();return;}
   if(f.classList.contains('addtask')){
@@ -1712,7 +1772,7 @@ window.addEventListener('appinstalled',function(){deferred=null;renderTitle();re
 /* ---------- arranque ---------- */
 $('#ver').textContent='v'+VERSION;$('#ver2').textContent='v'+VERSION;
 $$('.adm').forEach(function(e){e.textContent=ADMIN_NAME;});
-padInit();
+authPad.init();oldPad.init();newPad.init();
 $('#dlgFc').addEventListener('cancel',function(e){e.preventDefault();});
 try{var sv=localStorage.getItem(LSU);if(sv&&{semana:1,tareas:1,apuntes:1,pedidos:1,recibidos:1}[sv])ui.view=sv;}catch(e){}
 if(hasGS())startSession(false);else showAuth('',CFG.user?'login':'reg',CFG.user);
